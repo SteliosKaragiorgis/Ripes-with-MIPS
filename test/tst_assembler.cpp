@@ -414,7 +414,7 @@ void tst_Assembler::tst_matcher() {
 
     auto disassembled = std::get<LineTokens>(disRes);
 
-    qDebug() << QString::number(iter.second, 2) << " = " << disassembled;
+    neytqDebug() << QString::number(iter.second, 2) << " = " << disassembled;
   }
 }
 
