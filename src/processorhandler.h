@@ -252,7 +252,6 @@ signals:
                                  // GUI updating
   void procStateChangedNonRun(); // processorReset | processorReversed |
                                  // processorClockedNonRun
-
   // Emitted whenever the global memory focus address for the application should
   // change.
   void memoryFocusAddressChanged(AInt address);
@@ -335,7 +334,7 @@ private:
 
   QFutureWatcher<void> m_runWatcher;
   bool m_stopRunningFlag = false;
-  std::mutex m_clockLock;
+  bool m_clockFinished = true;
 
   /**
    * @brief To avoid excessive UI updates due to things relying on

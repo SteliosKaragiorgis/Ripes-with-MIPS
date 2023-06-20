@@ -45,6 +45,13 @@ qint32 FancyTabBar::addFancyTab(QIcon icon, QString text) {
   return tabVector.size() - 1;
 }
 
+void FancyTabBar::removeFancyTab(){
+    for (int i = 0; i < tabVector.size(); i++) {
+      delete tabVector.at(i);
+    }
+    tabVector.clear();
+}
+
 /*!
  * \brief FancyTabBar::getActiveIndex return index of active tab.
  * \return index of active tab.
@@ -186,6 +193,24 @@ void FancyTabBar::mousePressEvent(QMouseEvent *event) {
 
     emit activeIndexChanged(activeIndex);
   }
+  else if (event->button() == Qt::RightButton) {
+      qint32 ret = getTabIndexByPoint(event->x(), event->y());
+      /*
+      // Cache tab
+      if(ret == 2){
+          update();
+
+          emit activeIndexChanged(ret);
+      }
+
+      //Memory tab
+      else if(ret ==3){
+          update();
+
+          emit activeIndexChanged(ret);
+      }
+      */
+  }
   QWidget::mouseReleaseEvent(event);
 }
 
@@ -205,7 +230,7 @@ void FancyTabBar::mouseMoveEvent(QMouseEvent *event) {
  *   cursor enter FancyTabBar area.
  * \param event see qt documentation for more details about this parameter.
  */
-void FancyTabBar::enterEvent(QEnterEvent *event) {
+void FancyTabBar::enterEvent(QEvent *event) {
   QEnterEvent *enterEvent = static_cast<QEnterEvent *>(event);
   hower = getTabIndexByPoint(enterEvent->x(), enterEvent->y());
   update();

@@ -18,9 +18,6 @@ public:
   bool initialFlag = false;
 
 
-  void setInitValue(VSRTL_VT_U value) { m_initvalue = value; }
-
-
   void initialState(){
       m_state = MIPSMulti_States::S0;
 

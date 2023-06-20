@@ -77,6 +77,30 @@ public:
 };
 
 template <typename BaseSyscall>
+class PrintCharMipsSyscall : public BaseSyscall {
+  static_assert(std::is_base_of<Syscall, BaseSyscall>::value);
+
+public:
+  PrintCharMipsSyscall()
+      : BaseSyscall(
+            "PrintChar", "Prints an ascii character",
+            {{0, "character to print (only lowest byte is considered)"}}) {}
+  void execute() {
+    const VInt arg0 = BaseSyscall::getArg(RegisterFileType::GPR, 0);
+    QByteArray string;
+    char byte;
+    AInt address = arg0;
+    do {
+      byte = static_cast<char>(
+          ProcessorHandler::getMemory().readMemConst(address++, 1) & 0xFF);
+      string.append(byte);
+    } while (byte != '\0');
+    string.remove(1,string.length());
+    SystemIO::printString(QString::fromUtf8(string));
+  }
+};
+
+template <typename BaseSyscall>
 class PrintHexSyscall : public BaseSyscall {
   static_assert(std::is_base_of<Syscall, BaseSyscall>::value);
 
