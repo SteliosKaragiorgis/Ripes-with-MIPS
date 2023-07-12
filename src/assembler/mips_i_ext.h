@@ -149,14 +149,14 @@ struct MIPS_I {
         instructions.push_back(ILuiType(Token("lui"), MIPSISA::Opcode::LUI));
 
         //I-TYPE Branch Instructions
-        /*instructions.push_back(IBranchType(Token("beq"), MIPSISA::Opcode::BEQ));
+        instructions.push_back(IBranchType(Token("beq"), MIPSISA::Opcode::BEQ));
         instructions.push_back(IBranchType(Token("bne"), MIPSISA::Opcode::BNE));
 
         //I-TYPE Branch with Zero Instructions
         instructions.push_back(IBranchZeroType(Token("bgez"), MIPSISA::Opcode::BGEZ, 0b00001));
         instructions.push_back(IBranchZeroType(Token("bgtz"), MIPSISA::Opcode::BGTZ, 0b00000));
         instructions.push_back(IBranchZeroType(Token("blez"), MIPSISA::Opcode::BLEZ, 0b00000));
-        instructions.push_back(IBranchZeroType(Token("bltz"), MIPSISA::Opcode::BLTZ, 0b00000));*/
+        instructions.push_back(IBranchZeroType(Token("bltz"), MIPSISA::Opcode::BLTZ, 0b00000));
 
         //I-TYPE Load Store
         instructions.push_back(ILoadStoreType(Token("lb"), MIPSISA::Opcode::LB));
@@ -172,8 +172,8 @@ struct MIPS_I {
 
 
         //J-Type
-        //instructions.push_back(JType(Token("j"), MIPSISA::Opcode::J));
-        //instructions.push_back(JType(Token("jal"), MIPSISA::Opcode::JAL));
+        instructions.push_back(JType(Token("j"), MIPSISA::Opcode::J));
+        instructions.push_back(JType(Token("jal"), MIPSISA::Opcode::JAL));
 
 
 
