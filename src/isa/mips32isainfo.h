@@ -13,7 +13,10 @@ public:
       for (const auto &ext : extensions) {
         if (supportsExtension(ext)) {
           m_enabledExtensions << ext;
-        }
+
+        } /*else {
+          assert(false && "Invalid extension specified for ISA");
+        }*/
       }
     }
 

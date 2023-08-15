@@ -18,13 +18,19 @@ Directive zeroDirective();
 Directive stringDirective();
 Directive ascizDirective();
 
+Directive asciizDirective();
+Directive asciiDirective();
+Directive spaceDirective();
+
 Directive doubleDirective();
 Directive wordDirective();
 Directive halfDirective();
 Directive shortDirective();
 Directive byteDirective();
+Directive byteMipsDirective();
 Directive twoByteDirective();
 Directive fourByteDirective();
+
 Directive longDirective();
 Directive alignDirective();
 

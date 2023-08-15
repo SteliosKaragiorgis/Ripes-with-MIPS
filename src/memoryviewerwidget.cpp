@@ -31,7 +31,7 @@ MemoryViewerWidget::MemoryViewerWidget(QWidget *parent)
   connect(ProcessorHandler::get(), &ProcessorHandler::procStateChangedNonRun,
           this, [=] { this->updateView(); });
   connect(ProcessorHandler::get(), &ProcessorHandler::memoryFocusAddressChanged,
-          this, &MemoryViewerWidget::setCentralAddress);
+            this, &MemoryViewerWidget::setCentralAddress);
 }
 
 MemoryViewerWidget::~MemoryViewerWidget() { delete m_ui; }
