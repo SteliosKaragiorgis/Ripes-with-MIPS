@@ -8,17 +8,14 @@ namespace Ripes {
 template <>
 class ISAInfo<ISA::MIPS32I> : public MIPSISAInfoBase {
 public:
-    ISAInfo<ISA::MIPS32I>(const QStringList extensions) {
-      // Validate extensions
-      for (const auto &ext : extensions) {
-        if (supportsExtension(ext)) {
-          m_enabledExtensions << ext;
-
-        } /*else {
-          assert(false && "Invalid extension specified for ISA");
-        }*/
+  ISAInfo<ISA::MIPS32I>(const QStringList extensions) {
+    // Validate extensions
+    for (const auto &ext : extensions) {
+      if (supportsExtension(ext)) {
+        m_enabledExtensions << ext;
       }
     }
+  }
 
   ISA isaID() const override { return ISA::MIPS32I; }
 
@@ -33,8 +30,6 @@ public:
   unsigned instrByteAlignment() const override {
     return extensionEnabled("C") ? 2 : 4;
   };
-
-
 };
 
 } // namespace Ripes
