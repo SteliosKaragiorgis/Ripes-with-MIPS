@@ -89,7 +89,7 @@ void RegisterWidget::showContextMenu(const QPoint &pos) {
                                "contained in the selected register");
   connect(&goToAddressAction, &QAction::triggered, [&]() {
     const auto address = m_model->data(index, Qt::EditRole).toULongLong();
-        ProcessorHandler::setMemoryFocusAddress(address);
+    ProcessorHandler::setMemoryFocusAddress(address);
   });
   menu.addAction(&goToAddressAction);
   menu.setToolTipsVisible(true);

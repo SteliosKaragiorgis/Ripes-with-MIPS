@@ -1,7 +1,5 @@
 #include "gnudirectives.h"
 #include "assembler.h"
-#include "ripessettings.h"
-
 
 namespace Ripes {
 namespace Assembler {
@@ -21,25 +19,15 @@ static QString numTokensError(unsigned expected, const TokenizedSrcLine &line) {
 }
 
 #define add_directive(container, directive)                                    \
-container.push_back(std::make_shared<Directive>(directive));
+  container.push_back(std::make_shared<Directive>(directive));
 
 DirectiveVec gnuDirectives() {
   DirectiveVec directives;
 
-  add_directive(directives, asciizDirective());
-  add_directive(directives, asciiDirective());
-  add_directive(directives, spaceDirective());
-
   add_directive(directives, stringDirective());
   add_directive(directives, ascizDirective());
   add_directive(directives, zeroDirective());
-
-  if(RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).toInt() < 12){
-    add_directive(directives, byteDirective());
-  }
-  else{
-    add_directive(directives, byteMipsDirective());
-  }
+  add_directive(directives, byteDirective());
   add_directive(directives, doubleDirective());
   add_directive(directives, wordDirective());
   add_directive(directives, halfDirective());
@@ -61,10 +49,10 @@ DirectiveVec gnuDirectives() {
 }
 
 #define getImmediateErroring(token, res, location)                             \
-auto exprRes##res = assembler->evalExpr(location, token);                    \
-    if (auto *err = std::get_if<Error>(&exprRes##res))                           \
+  auto exprRes##res = assembler->evalExpr(location, token);                    \
+  if (auto *err = std::get_if<Error>(&exprRes##res))                           \
     return {*err};                                                             \
-    res = std::get<ExprEvalVT>(exprRes##res);
+  res = std::get<ExprEvalVT>(exprRes##res);
 
 template <size_t size>
 std::optional<Error> assembleData(const AssemblerBase *assembler,
@@ -90,48 +78,6 @@ std::optional<Error> assembleData(const AssemblerBase *assembler,
   return {};
 }
 
-/*template <size_t size>
-Result<QByteArray> dataFunctor(const AssemblerBase *assembler,
-                               const DirectiveArg &arg) {
-  if(RipesSettings::value(RIPES_SETTING_PROCESSOR_ID).toInt() < 12){
-      if (arg.line.tokens.length() < 1) {
-        return {Error(arg.line, "Invalid number of arguments (expected >1)")};
-      }
-      QByteArray bytes;
-      auto err = assembleData<size>(assembler, arg.line, bytes);
-      if (err) {
-        return {err.value()};
-      } else {
-        return {bytes};
-      }
-  }
-
-if (arg.line.tokens.length() != 1) {
- return Result<QByteArray>{Error(arg.line, numTokensError(1, arg.line))};
-}
-
-qDebug() << "arg.line.tokens.at(0): " << arg.line.tokens.at(0);
-
-QString byte = arg.line.tokens.at(0);
-if(((!byte.endsWith("\'") && byte.startsWith("\'")) || (byte.endsWith("\'") && !byte.startsWith("\'")) ) || (!byte.endsWith("\'") && !byte.startsWith("\'") && !byte.endsWith("\"") && !byte.startsWith("\""))  ){
- return {Error(arg.line, "Missing terminating \' character")};
-}
-else if(!byte.endsWith("\"") && byte.startsWith("\"")){
- return {Error(arg.line, "Missing terminating \" character")};
-}
-byte.remove('\"');
-byte.remove('\'');
-qDebug() << "byte.toUtf8(): " << byte.toUtf8();
-qDebug() << "byte.length(): " << byte.length();
-if (byte.length() != 1) {
- return {Error(arg.line, "Invalid number of arguments")};
-}
-return {byte.toUtf8()};
-
-
-
-}*/
-
 template <size_t size>
 Result<QByteArray> dataFunctor(const AssemblerBase *assembler,
                                const DirectiveArg &arg) {
@@ -147,63 +93,6 @@ Result<QByteArray> dataFunctor(const AssemblerBase *assembler,
   }
 }
 
-
-Result<QByteArray> byteFunctor(const AssemblerBase *,
-                               const DirectiveArg &arg){
-  if (arg.line.tokens.length() < 1) {
-    return Result<QByteArray>{Error(arg.line, numTokensError(1, arg.line))};
-  }
-
-  QString byte = arg.line.tokens.at(0);
-  QByteArray bytes;
-  /*
-  if(((!byte.endsWith("\'") && byte.startsWith("\'")) || (byte.endsWith("\'") && !byte.startsWith("\'")) ) || (!byte.endsWith("\'") && !byte.startsWith("\'") && !byte.endsWith("\"") && !byte.startsWith("\""))  ){
-    return {Error(arg.line, "Missing terminating \' character")};
-  }
-  else if(!byte.endsWith("\"") && byte.startsWith("\"")){
-    return {Error(arg.line, "Missing terminating \" character")};
-  }
-
-
-
-   byte.remove('\"');
-   byte.remove('\'');
-   qDebug() << "byte.toUtf8(): " << byte.toUtf8();
-   qDebug() << "byte.length(): " << byte.length();
-   */
-  // add all chars byte array
-  for(int i=0; i<arg.line.tokens.size(); i++){
-    QString token = arg.line.tokens.at(i);
-
-    if(((!token.endsWith("\'") && token.startsWith("\'")) || (token.endsWith("\'") && !token.startsWith("\'")) ) || (!token.endsWith("\'") && !token.startsWith("\'") && !token.endsWith("\"") && !token.startsWith("\""))  ){
-      return {Error(arg.line, "Missing terminating \' character")};
-    }
-    else if(!token.endsWith("\"") && token.startsWith("\"")){
-      return {Error(arg.line, "Missing terminating \" character")};
-    }
-
-
-
-    token.remove('\"');
-    token.remove('\'');
-
-    if (token.length() != 1) {
-      return {Error(arg.line, "Invalid number of arguments")};
-    }
-
-    bytes.append(token.toUtf8());
-  }
-
-
-  /*
-  if (byte.length() != 1) {
-    return {Error(arg.line, "Invalid number of arguments")};
-  }
-  return {byte.toUtf8()};
-  */
-  return {bytes};
-}
-
 Result<QByteArray> stringFunctor(const AssemblerBase *,
                                  const DirectiveArg &arg) {
   if (arg.line.tokens.length() != 1) {
@@ -215,40 +104,7 @@ Result<QByteArray> stringFunctor(const AssemblerBase *,
   return {string.toUtf8().append('\0')};
 }
 
-Result<QByteArray> asciiFunctor(const AssemblerBase *,
-                                const DirectiveArg &arg) {
-  if (arg.line.tokens.length() != 1) {
-    return Result<QByteArray>{Error(arg.line, numTokensError(1, arg.line))};
-  }
-  QString string = arg.line.tokens.at(0);
-  string.replace("\\n", "\n");
-  string.remove('\"');
-  return {string.toUtf8()};
-}
-
-Result<QByteArray> spaceFunctor(const AssemblerBase *,
-                                const DirectiveArg &arg) {
-  if (arg.line.tokens.length() != 1) {
-    return Result<QByteArray>{Error(arg.line, numTokensError(1, arg.line))};
-  }
-  QByteArray bytes;//arg.line.tokens.at(0);
-  for (int i = 0; i < arg.line.tokens.at(0).toInt(nullptr, 10); i++){
-    bytes.append('\0');
-  }
-  return {bytes};
-}
-
-
-
-Directive asciizDirective() { return Directive(".asciiz", &stringFunctor); }
-
-Directive asciiDirective() { return Directive(".ascii", &asciiFunctor); }
-
-Directive spaceDirective() { return Directive(".space", &spaceFunctor); }
-
 Directive ascizDirective() { return Directive(".asciz", &stringFunctor); }
-
-Directive byteMipsDirective() { return Directive(".byte", &byteFunctor); }
 
 Directive byteDirective() { return Directive(".byte", &dataFunctor<1>); }
 
@@ -338,7 +194,7 @@ Directive equDirective() {
     return Result<QByteArray>(QByteArray());
   };
   return Directive(".equ", equFunctor,
-                   true /* Constants should be made available during ie. pseudo instruction expansion */);
+                     true /* Constants should be made available during ie. pseudo instruction expansion */);
 }
 
 Directive alignDirective() {

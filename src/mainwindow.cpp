@@ -95,38 +95,7 @@ MainWindow::MainWindow(QWidget *parent)
   m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
-
-  if(QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name(), "MIPS32I")!=0){
-      m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
-  }
-
-  auto tabbarVisibility = [=] {
-      if(QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name() , "MIPS32I")==0
-              && m_ui->tabbar->getActiveIndex()==4 ){
-          m_ui->tabbar->setActiveIndex(1);
-      }
-
-      m_ui->tabbar->removeFancyTab();
-      m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
-      m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
-      m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
-      m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
-
-      if(QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name() , "MIPS32I")!=0 ){
-          m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
-      }
-  };
-
-  auto menuVisibility = [=] {
-      m_ui->menuFile->clear();
-      setupMenus();
-  };
-
-  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
-          tabbarVisibility);
-  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
-          menuVisibility);
-
+  m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
   connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, this,
           &MainWindow::tabChanged);
   connect(m_ui->tabbar, &FancyTabBar::activeIndexChanged, m_stackedTabs,
@@ -282,30 +251,6 @@ void MainWindow::setupMenus() {
 MainWindow::~MainWindow() { delete m_ui; }
 
 void MainWindow::setupExamplesMenu(QMenu *parent) {
-
-  if(QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name() , "MIPS32I")==0 ){
-      parent->clear();
-      const auto assemblyExamples =
-          QDir(":/examples/assembly_mips/").entryList(QDir::Files);
-      auto *assemblyMenu = parent->addMenu("Assembly");
-      if (!assemblyExamples.isEmpty()) {
-        for (const auto &fileName : assemblyExamples) {
-          assemblyMenu->addAction(fileName, this, [=] {
-            LoadFileParams parms;
-            parms.filepath = QString(":/examples/assembly_mips/") + fileName;
-            parms.type = SourceType::Assembly;
-            static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
-                ->loadExternalFile(parms);
-            clearSaveFile();
-          });
-        }
-      }
-
-  }
-  else{
-    parent->clear();
-
-
   const auto assemblyExamples =
       QDir(":/examples/assembly/").entryList(QDir::Files);
   auto *assemblyMenu = parent->addMenu("Assembly");
@@ -361,8 +306,6 @@ void MainWindow::setupExamplesMenu(QMenu *parent) {
         tmpELFFile->remove();
       });
     }
-  }
-
   }
 }
 

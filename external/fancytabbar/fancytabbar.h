@@ -22,7 +22,6 @@ public:
   virtual ~FancyTabBar();
 
   qint32 addFancyTab(QIcon icon, QString text);
-  void removeFancyTab();
 
   qint32 getActiveIndex() const;
   Error setActiveIndex(qint32 index);
@@ -31,7 +30,7 @@ protected:
   void paintEvent(QPaintEvent *event);
   void mousePressEvent(QMouseEvent *event);
   void mouseMoveEvent(QMouseEvent *event);
-  void enterEvent(QEvent *event);
+  void enterEvent(QEnterEvent *event);
   void leaveEvent(QEvent *event);
 
   QRect getTabRect(qint32 index);

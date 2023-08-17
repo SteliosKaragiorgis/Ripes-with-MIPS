@@ -8,11 +8,20 @@ namespace Ripes {
 template <>
 class ISAInfo<ISA::MIPS32I> : public MIPSISAInfoBase {
 public:
+<<<<<<< HEAD
   ISAInfo<ISA::MIPS32I>(const QStringList extensions) {
     // Validate extensions
     for (const auto &ext : extensions) {
       if (supportsExtension(ext)) {
         m_enabledExtensions << ext;
+=======
+    ISAInfo<ISA::MIPS32I>(const QStringList extensions) {
+      // Validate extensions
+      for (const auto &ext : extensions) {
+        if (supportsExtension(ext)) {
+          m_enabledExtensions << ext;
+        }
+>>>>>>> parent of 344e589 (Merge branch 'master' into MIPS-ISA)
       }
     }
   }

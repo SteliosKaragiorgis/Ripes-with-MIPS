@@ -33,14 +33,6 @@ enum ProcessorID {
   RV64_5S_NO_FW,
   RV64_5S,
   RV64_6S_DUAL,
-  MIPS32_SS,
-  MIPS32_MS,
-  MIPS32_UNOPT_5S_NO_FW_HZ,
-  MIPS32_5S_NO_FW_HZ,
-  MIPS32_5S_NO_HZ,
-  MIPS32_5S_NO_FW,
-  MIPS32_5S,
-  MIPS32_5S_OPT,
   NUM_PROCESSORS
 };
 Q_ENUM_NS(ProcessorID); // Register with the metaobject system

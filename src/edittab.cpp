@@ -20,11 +20,8 @@
 #include "processorhandler.h"
 #include "ripessettings.h"
 #include "symbolnavigator.h"
-#include "savedialog.h"
 
 namespace Ripes {
-
-QString previousProcessor;
 
 EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
     : RipesTab(toolbar, parent), m_ui(new Ui::EditTab) {
@@ -112,9 +109,6 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
   sourceTypeChanged();
   enableEditor();
 
-  // Initialize previous processor value
-  previousProcessor=ProcessorHandler::getProcessor()->implementsISA()->name();
-
   // Make left-hand side widgets stretch wrt. registers
   m_ui->toplevelSplitter->setStretchFactor(0, 2);
   m_ui->toplevelSplitter->setStretchFactor(1, 0);
@@ -149,46 +143,8 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
     break;
   }
 
-  auto updateEditorSourceText = [=] {
-
-    //Check if processor has changed (MIPS to RISCV/RISCV to MIPS)
-    if((QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name() , "MIPS32I")==0
-            && previousProcessor != "MIPS32I")
-            || (QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name() , "MIPS32I")!=0
-                                                   && previousProcessor == "MIPS32I")){
-
-        auto *proc = ProcessorHandler::get();
-        if (proc->isRunning()){
-          proc->stopRun();
-        }
-        if (!getAssemblyText().isEmpty()) {
-          QMessageBox saveMsgBox(this);
-          saveMsgBox.setWindowTitle("Ripes");
-          saveMsgBox.setText("Save current program before changing processor?");
-
-          saveMsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-
-          const auto result = saveMsgBox.exec();
-          if (result == QMessageBox::Yes) {
-            saveFilesTriggered();
-          }
-         }
-          setSourceText("");
-
-
-
-    }
-
-
-    previousProcessor=ProcessorHandler::getProcessor()->implementsISA()->name();
-  };
-  connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
-          updateEditorSourceText);
-
   m_ui->codeEditor->document()->setPlainText(
       RipesSettings::value(RIPES_SETTING_SOURCECODE).toString());
-
-
 }
 
 void EditTab::showSymbolNavigator() {
@@ -229,6 +185,7 @@ bool EditTab::loadFile(const LoadFileParams &fileParams) {
                          "Error: Could not open file " + fileParams.filepath);
     return false;
   }
+
   bool success = true;
   auto loadedProgram = std::make_shared<Program>();
   switch (fileParams.type) {
@@ -329,17 +286,6 @@ void EditTab::onProcessorChanged() {
   // been added or removed which must be reflected in the syntax highlighter
   m_ui->codeEditor->setSourceType(
       m_currentSourceType, ProcessorHandler::getAssembler()->getOpcodes());
-
-  if(QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name(), "MIPS32I")==0){
-      m_ui->setCInput->setVisible(false);
-      m_toolbar->removeAction(m_buildAction);
-  }
-
-  else{
-      m_ui->setCInput->setVisible(true);
-      m_toolbar->addAction(m_buildAction);
-
-  }
 
   // Try reassembling
   sourceCodeChanged();
@@ -474,25 +420,6 @@ static bool isInternalSourceFile(const QString &filename) {
   return re.match(filename).hasMatch();
 }
 
-static bool writeTextFile(QFile &file, const QString &data) {
-  if (file.open(QIODevice::WriteOnly)) {
-    QTextStream stream(&file);
-    stream << data;
-    file.close();
-    return true;
-  }
-  return false;
-}
-
-static bool writeBinaryFile(QFile &file, const QByteArray &data) {
-  if (file.open(QIODevice::WriteOnly)) {
-    file.write(data);
-    file.close();
-    return true;
-  }
-  return false;
-}
-
 bool EditTab::loadElfFile(Program &program, QFile &file) {
   ELFIO::elfio reader;
 
@@ -582,58 +509,6 @@ bool EditTab::loadElfFile(Program &program, QFile &file) {
   m_ui->inputSrcPath->setText(file.fileName());
 
   return true;
-}
-
-void EditTab::saveFilesTriggered() {
-  SaveDialog diag(
-      getSourceType());
-  if (!RipesSettings::value(RIPES_SETTING_HAS_SAVEFILE).toBool()) {
-    saveFilesAsTriggered();
-    return;
-  }
-
-  emit prepareSave();
-  QStringList savedFiles;
-  if (!diag.sourcePath().isEmpty()) {
-    if (!QDir().mkpath(QFileInfo(diag.sourcePath()).absoluteDir().absolutePath()))
-      return;
-    QFile file(diag.sourcePath());
-    savedFiles << diag.sourcePath();
-    if (!writeTextFile(file, getAssemblyText())) {
-      QMessageBox::information(this, "File error",
-                               "Error when saving file: " + file.errorString());
-      return;
-    }
-  }
-
-  if (!diag.binaryPath().isEmpty()) {
-      if (!QDir().mkpath(QFileInfo(diag.binaryPath()).absoluteDir().absolutePath()))
-        return;
-    QFile file(diag.binaryPath());
-    auto program = ProcessorHandler::getProgram();
-    if (!program || (program.get()->sections.count(".text") == 0))
-      return;
-
-    savedFiles << diag.binaryPath();
-    if (!writeBinaryFile(file, program.get()->sections.at(".text").data)) {
-      QMessageBox::information(this, "File error",
-                               "Error when saving file: " + file.errorString());
-      return;
-    }
-  }
-
-  GeneralStatusManager::setStatusTimed("Saved files " + savedFiles.join(", "),
-                                       1000);
-}
-
-void EditTab::saveFilesAsTriggered() {
-  SaveDialog diag(getSourceType());
-  auto ret = diag.exec();
-  if (ret == QDialog::Rejected) {
-    return;
-  }
-  RipesSettings::setValue(RIPES_SETTING_HAS_SAVEFILE, true);
-  saveFilesTriggered();
 }
 
 } // namespace Ripes

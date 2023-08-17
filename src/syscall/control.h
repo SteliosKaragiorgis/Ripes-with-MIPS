@@ -22,18 +22,6 @@ public:
 };
 
 template <typename BaseSyscall>
-class ExitMipsSyscall : public BaseSyscall {
-  static_assert(std::is_base_of<Syscall, BaseSyscall>::value);
-
-public:
-  ExitMipsSyscall() : BaseSyscall("Exit", "Exits the program") {}
-  void execute() {
-    ProcessorHandler::getProcessorNonConst()->finalize(
-        RipesProcessor::FinalizeReason::exitSyscall);
-  }
-};
-
-template <typename BaseSyscall>
 class Exit2Syscall : public BaseSyscall {
   static_assert(std::is_base_of<Syscall, BaseSyscall>::value);
 

@@ -11,19 +11,5 @@
         <file>RISC-V/rv5s_no_fw/rv5s_no_fw_standard_layout.json</file>
         <file>RISC-V/rv5s_no_fw/rv5s_no_fw_extended_layout.json</file>
         <file>RISC-V/rv6s_dual/rv6s_dual_extended_layout.json</file>
-        <file>MIPS/mss/mips_ss_extended_layout.json</file>
-        <file>MIPS/m5s_no_fw_hz/m5s_no_fw_hz_extended_layout.json</file>
-        <file>MIPS/mss/mips_ss_standard_layout.json</file>
-        <file>MIPS/mms/mips_ms_extended_layout.json</file>
-        <file>MIPS/mms/mips_ms_standard_layout.json</file>
-        <file>MIPS/m5s_no_hz/m5s_no_hz_standard_layout.json</file>
-        <file>MIPS/m5s/m5s_standard_layout.json</file>
-        <file>MIPS/m5s_unopt_no_fw_hz/m5s_unopt_nofw_nohz_standard_layout.json</file>
-        <file>MIPS/m5s_unopt_no_fw_hz/m5s_unopt_nofw_nohz_extended_layout.json</file>
-        <file>MIPS/m5s_no_hz/m5s_no_hz_extended_layout.json</file>
-        <file>MIPS/m5s_no_fw/m5s_nofw_yeshz_standard_layout.json</file>
-        <file>MIPS/m5s_no_fw/m5s_nofw_yeshz_extended_layout.json</file>
-        <file>MIPS/m5s/m5s_extended_layout.json</file>
-        <file>MIPS/m5s_optimized/m5s_extended_layout.json</file>
     </qresource>
 </RCC>

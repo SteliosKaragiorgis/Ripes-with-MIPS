@@ -8,10 +8,9 @@
 #include "assembler/program.h"
 #include "assembler/rv32i_assembler.h"
 #include "assembler/rv64i_assembler.h"
-#include "assembler/mips32i_assembler.h"
+#include "io/iomanager.h"
 
 #include "syscall/riscv_syscall.h"
-#include "syscall/mips_syscall.h"
 
 #include <QMessageBox>
 #include <QtConcurrent/QtConcurrent>
@@ -93,23 +92,7 @@ ProcessorHandler::ProcessorHandler() {
   connect(RipesSettings::getObserver(RIPES_GLOBALSIGNAL_REQRESET),
           &SettingObserver::modified, this, &ProcessorHandler::_reset);
 
-  //m_syscallManager = std::make_unique<RISCVSyscallManager>();
-  //m_syscallManager = std::make_unique<MIPSSyscallManager>();
-
-  const auto &ISA = _currentISA();
-  if (auto *rv32isa = dynamic_cast<const ISAInfo<ISA::RV32I> *>(ISA)) {
-    m_syscallManager = std::make_unique<RISCVSyscallManager>();
-  } else if (auto *rv64isa = dynamic_cast<const ISAInfo<ISA::RV64I> *>(ISA)) {
-    m_syscallManager = std::make_unique<RISCVSyscallManager>();
-  }
-  else if (auto *mips32isa = dynamic_cast<const ISAInfo<ISA::MIPS32I> *>(ISA)) {
-    m_syscallManager = std::make_unique<MIPSSyscallManager>();
-  }
-  else {
-    Q_UNREACHABLE();
-  }
-
-
+  m_syscallManager = std::make_unique<RISCVSyscallManager>();
   m_constructing = false;
 }
 
@@ -177,24 +160,27 @@ void ProcessorHandler::_triggerProcStateChangeTimer() {
 
 class ProcessorClocker : public QRunnable {
 public:
-  explicit ProcessorClocker(bool &finished) : m_finished(finished) {}
+  explicit ProcessorClocker(std::mutex &clockLock) : clockLock(clockLock) {}
   void run() override {
+    std::unique_lock l(clockLock);
     ProcessorHandler::getProcessorNonConst()->clock();
     ProcessorHandler::checkProcessorFinished();
     if (ProcessorHandler::checkBreakpoint()) {
       ProcessorHandler::stopRun();
     }
-    m_finished = true;
   }
 
 private:
-  bool &m_finished;
+  std::mutex &clockLock;
 };
 
 void ProcessorHandler::_clock() {
-  if (m_clockFinished) {
-    m_clockFinished = false;
-    QThreadPool::globalInstance()->start(new ProcessorClocker(m_clockFinished));
+  // Attempt to grab the clock lock - if not possible to acquire, this means
+  // that there already is an ongoing clock event. This _clock event will
+  // therefore be ignored.
+  if (m_clockLock.try_lock()) {
+    QThreadPool::globalInstance()->start(new ProcessorClocker(m_clockLock));
+    m_clockLock.unlock();
   }
 }
 
@@ -268,16 +254,9 @@ void ProcessorHandler::createAssemblerForCurrentISA() {
 
   if (auto *rv32isa = dynamic_cast<const ISAInfo<ISA::RV32I> *>(ISA)) {
     m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rv32isa);
-    m_syscallManager = std::make_unique<RISCVSyscallManager>();
   } else if (auto *rv64isa = dynamic_cast<const ISAInfo<ISA::RV64I> *>(ISA)) {
     m_currentAssembler = std::make_shared<Assembler::RV64I_Assembler>(rv64isa);
-    m_syscallManager = std::make_unique<RISCVSyscallManager>();
-  }
-  else if (auto *mips32isa = dynamic_cast<const ISAInfo<ISA::MIPS32I> *>(ISA)) {
-      m_currentAssembler = std::make_shared<Assembler::MIPS32I_Assembler>(mips32isa);
-      m_syscallManager = std::make_unique<MIPSSyscallManager>();
-  }
-  else {
+  } else {
     Q_UNREACHABLE();
   }
 }
@@ -294,6 +273,10 @@ void ProcessorHandler::_reset() {
   for (const auto &kv : m_currentRegInits) {
     _setRegisterValue(RegisterFileType::GPR, kv.first, kv.second);
   }
+
+  // Reset IO devices.
+  IOManager::get().reset();
+
   // Forcing memory values doesn't necessarily mean that the processor will
   // notify that its state changed. Manually trigger a state change signal, to
   // ensure this.

@@ -47,7 +47,6 @@ public:
 signals:
   void programChanged(const std::shared_ptr<Program> &program);
   void editorStateChanged(bool enabled);
-  void prepareSave();
 
 public slots:
   void onSave();
@@ -71,10 +70,6 @@ public slots:
   void showSymbolNavigator();
   void sourceCodeChanged();
   void on_disassembledViewButton_toggled();
-
-private slots:
-  void saveFilesTriggered();
-  void saveFilesAsTriggered();
 
 private:
   void assemble();
