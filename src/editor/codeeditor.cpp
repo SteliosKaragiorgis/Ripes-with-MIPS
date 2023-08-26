@@ -21,7 +21,6 @@
 #include "processorhandler.h"
 #include "ripessettings.h"
 #include "rvsyntaxhighlighter.h"
-#include "mipssyntaxhighlighter.h"
 #include "statusmanager.h"
 #include "syntaxhighlighter.h"
 
@@ -44,7 +43,7 @@ CodeEditor::CodeEditor(QWidget *parent) : HighlightableTextEdit(parent) {
   m_font = QFont(Fonts::monospace, 11);
   setFont(m_font);
   m_fontTimer.setSingleShot(true);
-  setTabStopDistance(QFontMetricsF(m_font).width(' ') * 4);
+  setTabStopDistance(QFontMetricsF(m_font).horizontalAdvance(' ') * 4);
 
   // set event filter for catching scroll events
   installEventFilter(this);
@@ -185,7 +184,7 @@ void CodeEditor::updateSidebarWidth(int /* newBlockCount */) {
 static int indentationOf(const QString &text) {
   int indent = 0;
   for (const auto &ch : text) {
-    if (ch == " ") {
+    if (ch == ' ') {
       indent++;
     } else {
       break;
@@ -361,16 +360,10 @@ void CodeEditor::setSourceType(SourceType type,
   switch (m_sourceType) {
   case SourceType::Assembly: {
     auto *isa = ProcessorHandler::currentISA();
-    if (isa->isaID() == ISA::RV32I || isa->isaID() == ISA::RV64I) {
-    //if (isa->isaID() == ISA::RV32I || isa->isaID() == ISA::RV64I) {
+    if (isa->isaID() == ISA::RV32I || isa->isaID() == ISA::RV64I || isa->isaID() == ISA::MIPS32I) {
       m_highlighter = std::make_unique<RVSyntaxHighlighter>(
           document(), m_errors, supportedOpcodes);
-    }
-    else if (isa->isaID() == ISA::MIPS32I) {
-        m_highlighter = std::make_unique<MipsSyntaxHighlighter>(
-            document(), m_errors, supportedOpcodes);
-    }
-    else {
+    } else {
       Q_ASSERT(false && "Unknown ISA selected");
     }
     break;
