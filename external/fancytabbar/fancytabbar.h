@@ -22,6 +22,7 @@ public:
   virtual ~FancyTabBar();
 
   qint32 addFancyTab(QIcon icon, QString text);
+  void removeFancyTab();
 
   qint32 getActiveIndex() const;
   Error setActiveIndex(qint32 index);
