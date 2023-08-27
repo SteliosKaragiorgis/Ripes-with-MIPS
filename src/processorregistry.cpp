@@ -10,12 +10,6 @@
 #include "processors/RISC-V/rvss/rvss.h"
 #include "processors/MIPS/mss/mss.h"
 #include "processors/MIPS/mms/mms.h"
-#include "processors/MIPS/m5s/m5s.h"
-#include "processors/MIPS/m5s_optimized/m5s_optimized.h"
-#include "processors/MIPS/m5s_no_fw/m5s_no_fw.h"
-#include "processors/MIPS/m5s_no_fw_hz/m5s_no_fw_hz.h"
-#include "processors/MIPS/m5s_unopt_no_fw_hz//m5s_unopt_no_fw_hz.h".h"
-#include "processors/MIPS/m5s_no_hz/m5s_no_hz.h"
 
 
 namespace Ripes {
@@ -196,7 +190,7 @@ ProcessorRegistry::ProcessorRegistry() {
       "A single cycle processor", layouts, defRegVals));
 
   // MIPS multi cycle
-  layouts = {{"UCY-ECE212",
+  /*layouts = {{"UCY-ECE212",
               ":/layouts/MIPS/mms/mips_ms_standard_layout.json",
               {{{0, 0}, QPointF{0.25, 0}}}},
                 {"Extended",
@@ -206,128 +200,7 @@ ProcessorRegistry::ProcessorRegistry() {
   addProcessor(ProcInfo<vsrtl::core::MMS<uint32_t>>(
       ProcessorID::MIPS32_MS, "Multi-cycle processor",
       "A multi cycle processor, with finite state machine", layouts, defRegVals));
-
-  // MIPS 5-stage without forwarding or hazard detection (UNOPTIMIZED)
-  layouts = {{"UCY-ECE212",
-       ":/layouts/MIPS/m5s_unopt_no_fw_hz/m5s_unopt_nofw_nohz_ECE212.json",
-       {{{0, 0}, QPointF{0.09, 0.0}},   //yes
-        {{0, 1}, QPointF{0.36, 0.0}},   //yes
-        {{0, 2}, QPointF{0.608, 0.0}},
-        {{0, 3}, QPointF{0.794, 0.0}},  //yes
-        {{0, 4}, QPointF{0.93, 0.0}}}}, //yes
-             {"Extended",
-                    ":/layouts/MIPS/m5s_unopt_no_fw_hz/m5s_unopt_nofw_nohz_EXTENDED.json",
-                    {{{0, 0}, QPointF{0.09, 0.0}},
-                     {{0, 1}, QPointF{0.36, 0.0}},
-                     {{0, 2}, QPointF{0.587, 0.0}},
-                     {{0, 3}, QPointF{0.794, 0.0}},
-                     {{0, 4}, QPointF{0.93, 0.0}}}}};
-  defRegVals = {{29, 0x7ffffff0}, {28, 0x10008000}};
-  addProcessor(ProcInfo<vsrtl::core::MIPS32_UNOPT_5S_NO_FW_HZ<uint32_t>>(
-      ProcessorID::MIPS32_UNOPT_5S_NO_FW_HZ,
-      "5-stage processor w/o forwarding or hazard detection (Unoptimized)",
-      "A 5-stage in-order processor with no forwarding or hazard "
-      "detection/elimination.",
-      layouts, defRegVals));
-
-
-  // MIPS 5-stage without forwarding or hazard detection (OPTIMIZED)
-  layouts = {{"UCY-ECE212",
-       ":/layouts/MIPS/m5s_no_fw_hz/m5s_no_fw_hz_extended_layout.json",
-              {{{0, 0}, QPointF{0.09, 0.0}},
-               {{0, 1}, QPointF{0.376, 0.0}},
-               {{0, 2}, QPointF{0.637, 0.0}},
-               {{0, 3}, QPointF{0.794, 0.0}},
-               {{0, 4}, QPointF{0.93, 0.0}}}}};
-  defRegVals = {{29, 0x7ffffff0}, {28, 0x10008000}};
-  addProcessor(ProcInfo<vsrtl::core::M5S_NO_FW_HZ<uint32_t>>(
-      ProcessorID::MIPS32_5S_NO_FW_HZ,
-      "5-stage processor w/o forwarding or hazard detection",
-      "A 5-stage in-order processor with no forwarding or hazard "
-      "detection/elimination, with branch optimization.",
-      layouts, defRegVals));
-
-  // MIPS 5-stage without hazard detection (only forward unit)
-  layouts = {{"UCY-ECE212",
-              ":/layouts/MIPS/m5s_no_hz/m5s_no_hz_standard.json",
-              {{{0, 0}, QPointF{0.09, 0.0}},
-               {{0, 1}, QPointF{0.355, 0.0}},
-               {{0, 2}, QPointF{0.620, 0.0}},
-               {{0, 3}, QPointF{0.805, 0.0}},
-               {{0, 4}, QPointF{0.93, 0.0}}}},
-             {"Extended",
-              ":/layouts/MIPS/m5s_no_hz/m5s_no_hz_EXTENDED.json",
-              {{{0, 0}, QPointF{0.09, 0.0}},
-              {{0, 1}, QPointF{0.346, 0.0}},
-              {{0, 2}, QPointF{0.603, 0.0}},
-              {{0, 3}, QPointF{0.804, 0.0}},
-              {{0, 4}, QPointF{0.93, 0.0}}}}};
-  defRegVals = {{29, 0x7ffffff0}, {28, 0x10008000}};
-  addProcessor(ProcInfo<vsrtl::core::M5S_NO_HZ<uint32_t>>(
-      ProcessorID::MIPS32_5S_NO_HZ, "5-stage processor with forwarding",
-      "A 5-stage in-order processor with forwarding but no hazard "
-      "detection/elimination.",
-      layouts, defRegVals));
-
-  // MIPS 5-stage without forwarding unit (only hazard detection)
-  layouts = {{"UCY-ECE212",
-              ":/layouts/MIPS/m5s_no_fw/m5s_nofw_yeshz_ECE212.json",
-              {{{0, 0}, QPointF{0.09, 0}},
-               {{0, 1}, QPointF{0.376, 0}},
-               {{0, 2}, QPointF{0.613, 0}},
-               {{0, 3}, QPointF{0.794, 0}},
-               {{0, 4}, QPointF{0.93, 0}}}},
-
-             {"Extended",
-              ":/layouts/MIPS/m5s_no_fw/m5s_nofw_yeshz_EXTENDED.json",
-              {{{0, 0}, QPointF{0.09, 0}},
-               {{0, 1}, QPointF{0.347, 0}},
-               {{0, 2}, QPointF{0.590, 0}},
-               {{0, 3}, QPointF{0.794, 0}},
-               {{0, 4}, QPointF{0.93, 0}}}}};
-  defRegVals = {{29, 0x7ffffff0}, {28, 0x10008000}};
-  addProcessor(ProcInfo<vsrtl::core::M5S_NO_FW<uint32_t>>(
-      ProcessorID::MIPS32_5S_NO_FW, "5-stage processor with hazard detection",
-      "A 5-stage in-order processor with hazard detection/elimination but no "
-      "forwarding unit.",
-      layouts, defRegVals));
-
-  // MIPS 5-stage (Unoptimized)
-  layouts = {{"UCY-ECE212",
-              ":/layouts/MIPS/m5s/m5s_standard_layout.json",
-              {{{0, 0}, QPointF{0.09, 0}},
-               {{0, 1}, QPointF{0.356, 0}},
-               {{0, 2}, QPointF{0.624, 0}},
-               {{0, 3}, QPointF{0.806, 0}},
-               {{0, 4}, QPointF{0.93, 0}}}},
-             {"Extended",
-                           ":/layouts/MIPS/m5s/m5s_extended_layout.json",
-                           {{{0, 0}, QPointF{0.09, 0}},
-                            {{0, 1}, QPointF{0.350, 0}},
-                            {{0, 2}, QPointF{0.604, 0}},
-                            {{0, 3}, QPointF{0.804, 0}},
-                            {{0, 4}, QPointF{0.93, 0}}}}};
-  defRegVals = {{29, 0x7ffffff0}, {28, 0x10008000}};
-  addProcessor(ProcInfo<vsrtl::core::M5S<uint32_t>>(
-      ProcessorID::MIPS32_5S, "5-stage processor (Unoptimized)",
-      "A 5-stage in-order processor with hazard detection/elimination and "
-      "forwarding.",
-      layouts, defRegVals));
-
-  // MIPS 5-stage
-  layouts = {{"UCY-ECE212",
-                           ":/layouts/MIPS/m5s_optimized/m5s_extended_layout.json",
-                           {{{0, 0}, QPointF{0.09, 0}},
-                            {{0, 1}, QPointF{0.357, 0}},
-                            {{0, 2}, QPointF{0.629, 0}},
-                            {{0, 3}, QPointF{0.814, 0}},
-                            {{0, 4}, QPointF{0.948, 0}}}}};
-  defRegVals = {{29, 0x7ffffff0}, {28, 0x10008000}};
-  addProcessor(ProcInfo<vsrtl::core::M5S_OPT<uint32_t>>(
-      ProcessorID::MIPS32_5S_OPT, "5-stage processor",
-      "A 5-stage in-order processor with hazard detection/elimination and "
-      "forwarding, with branch optimization.",
-      layouts, defRegVals));
+*/
 
 
 }
