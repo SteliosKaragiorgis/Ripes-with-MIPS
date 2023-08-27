@@ -24,15 +24,12 @@ public:
   ~MIPSSyscall() override {}
 
   VInt getArg(RegisterFileType rfid, ArgIdx i) const override {
-    // RISC-V arguments range from a0-a6
-    auto *isa = ProcessorHandler::currentISA();
     assert(i < 7);
     const int regIdx = 4 + i;  // a0 = x4
     return ProcessorHandler::getRegisterValue(rfid, regIdx);
   }
 
   void setRet(RegisterFileType rfid, ArgIdx i, VInt value) const override {
-    // RISC-V arguments range from a0-a6
     assert(i < 7);
     const int regIdx = 2 + i; // v0 = x2
     ProcessorHandler::setRegisterValue(rfid, regIdx, value);
