@@ -190,7 +190,7 @@ ProcessorRegistry::ProcessorRegistry() {
       "A single cycle processor", layouts, defRegVals));
 
   // MIPS multi cycle
-  /*layouts = {{"UCY-ECE212",
+  layouts = {{"UCY-ECE212",
               ":/layouts/MIPS/mms/mips_ms_standard_layout.json",
               {{{0, 0}, QPointF{0.25, 0}}}},
                 {"Extended",
@@ -200,7 +200,6 @@ ProcessorRegistry::ProcessorRegistry() {
   addProcessor(ProcInfo<vsrtl::core::MMS<uint32_t>>(
       ProcessorID::MIPS32_MS, "Multi-cycle processor",
       "A multi cycle processor, with finite state machine", layouts, defRegVals));
-*/
 
 
 }
