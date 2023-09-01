@@ -3,7 +3,7 @@
 #include "../mips.h"
 #include "../mips_decode_mms.h"
 #include "../mips_uncompress.h"
-#include "../mips_uncompress_copy.h"
+#include "../mips_uncompress.h"
 #include "../mips_state_mms.h"
 #include "VSRTL/core/vsrtl_component.h"
 #include "../mips_state_register.h"
@@ -94,7 +94,7 @@ public:
 
   SUBCOMPONENT(decode, TYPE(MIPS_Decode_MMS<XLEN>));
 
-  SUBCOMPONENT(uncompress, TYPE(MIPS_Uncompress_TEST<c_MIPSInstrWidth>));
+  SUBCOMPONENT(uncompress, TYPE(MIPS_Uncompress<c_MIPSInstrWidth>));
   INPUTPORT(pc, c_MIPSInstrWidth);
   INPUTPORT(instr_show, c_MIPSInstrWidth);
   INPUTPORT(irwrite, 1);
