@@ -11,20 +11,18 @@
 
 #include "../../MIPS/mips.h"
 #include "../../MIPS/mips_alu.h"
-#include "../../MIPS/mips_control.h"
 #include "../../MIPS/mips_alu_control.h"
+#include "../../MIPS/mips_control.h"
 #include "../../MIPS/mips_ecallchecker.h"
 #include "../../MIPS/mips_immediate.h"
+#include "../../MIPS/mips_jump_address.h"
 #include "../../MIPS/mips_memory.h"
+#include "../../MIPS/mips_registerfile.h"
 #include "../../MIPS/mips_shift.h"
 #include "../../MIPS/mips_shift_extend.h"
-#include "../../MIPS/mips_registerfile.h"
-#include "../../MIPS/mips_jump_address.h"
 #include "../../MIPS/mss/mips_decodeRVC.h"
 #include <QPalette>
 #include <QPen>
-
-
 
 namespace vsrtl {
 namespace core {
@@ -41,8 +39,6 @@ public:
       : RipesVSRTLProcessor("Single Cycle MIPS Processor") {
     m_enabledISA = std::make_shared<ISAInfo<XLenToMIPSISA<XLEN>()>>(extensions);
     decode->setISA(m_enabledISA);
-
-
 
     // -----------------------------------------------------------------------
     // Program counter
@@ -93,7 +89,6 @@ public:
 
     control->reg_do_write_ctrl >> registerFile->wr_en;
     reg_wr_src->out >> registerFile->data_in;
-
 
     data_mem->data_out >> reg_wr_src->get(MIPS_RegWrSrc::MEMREAD);
     alu->res >> reg_wr_src->get(MIPS_RegWrSrc::ALURES);
@@ -151,13 +146,12 @@ public:
     pc_branch->out >> pc_src->get(MIPS_PcSrc::PC4);
 
     // -----------------------------------------------------------------------
-    //Jump
+    // Jump
 
     pc_4->out >> j_address->pc;
     shift_pc->out >> j_address->sl;
     decode->opcode >> j_address->opcode;
     registerFile->r1_out >> j_address->ra;
-
 
     // -----------------------------------------------------------------------
     // Shift
@@ -166,7 +160,7 @@ public:
 
     // -----------------------------------------------------------------------
     // Data memory
-    alu->res >> data_mem->addr;                         //yes
+    alu->res >> data_mem->addr; // yes
     control->mem_do_write_ctrl >> data_mem->wr_en;
     registerFile->r2_out >> data_mem->data_in;
     control->mem_ctrl >> data_mem->op;
@@ -229,9 +223,7 @@ public:
     return pc_reg->out.uValue();
   }
   AInt nextFetchedAddress() const override { return pc_src->out.uValue(); }
-  QString stageName(StageIndex) const override {
-    return "•";
-  }
+  QString stageName(StageIndex) const override { return "•"; }
 
   StageInfo stageInfo(StageIndex) const override {
     return StageInfo({pc_reg->out.uValue(),
@@ -304,11 +296,9 @@ public:
     m_finished = false;
   }
 
-
   static ProcessorISAInfo supportsISA() {
     return ProcessorISAInfo{
-        std::make_shared<ISAInfo<XLenToMIPSISA<XLEN>()>>(QStringList())
-    };
+        std::make_shared<ISAInfo<XLenToMIPSISA<XLEN>()>>(QStringList())};
   }
   const ISAInfoBase *implementsISA() const override {
     return m_enabledISA.get();

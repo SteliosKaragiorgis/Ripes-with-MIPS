@@ -5,10 +5,10 @@
 #include "ripessettings.h"
 #include "statusmanager.h"
 
+#include "assembler/mips32i_assembler.h"
 #include "assembler/program.h"
 #include "assembler/rv32i_assembler.h"
 #include "assembler/rv64i_assembler.h"
-#include "assembler/mips32i_assembler.h"
 #include "io/iomanager.h"
 
 #include "syscall/riscv_syscall.h"
@@ -257,8 +257,10 @@ void ProcessorHandler::createAssemblerForCurrentISA() {
     m_currentAssembler = std::make_shared<Assembler::RV32I_Assembler>(rv32isa);
   } else if (auto *rv64isa = dynamic_cast<const ISAInfo<ISA::RV64I> *>(ISA)) {
     m_currentAssembler = std::make_shared<Assembler::RV64I_Assembler>(rv64isa);
-  }  else if (auto *mips32isa = dynamic_cast<const ISAInfo<ISA::MIPS32I> *>(ISA)) {
-    m_currentAssembler = std::make_shared<Assembler::MIPS32I_Assembler>(mips32isa);
+  } else if (auto *mips32isa =
+                 dynamic_cast<const ISAInfo<ISA::MIPS32I> *>(ISA)) {
+    m_currentAssembler =
+        std::make_shared<Assembler::MIPS32I_Assembler>(mips32isa);
   } else {
     Q_UNREACHABLE();
   }

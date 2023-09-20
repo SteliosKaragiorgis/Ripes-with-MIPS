@@ -10,8 +10,8 @@ namespace Ripes {
 class MipsSyntaxHighlighter : public SyntaxHighlighter {
 public:
   MipsSyntaxHighlighter(QTextDocument *parent,
-                      std::shared_ptr<Assembler::Errors> errors,
-                      const std::set<QString> &supportedOpcodes);
+                        std::shared_ptr<Assembler::Errors> errors,
+                        const std::set<QString> &supportedOpcodes);
   void syntaxHighlightBlock(const QString &text) override;
 
 private:

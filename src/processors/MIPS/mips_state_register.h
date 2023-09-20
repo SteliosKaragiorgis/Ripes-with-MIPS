@@ -16,17 +16,13 @@ public:
       : Component(name, parent) {
 
     CONNECT_REGISTERED_CLEN_INPUT(state_reg, clear, enable);
-
-
   }
-
 
   REGISTERED_CLEN_INPUT(state_reg, MIPSMulti_States::width());
 
   // Register bank controls
   INPUTPORT(enable, 1);
   INPUTPORT(clear, 1);
-
 };
 
 } // namespace core

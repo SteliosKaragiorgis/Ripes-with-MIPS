@@ -53,7 +53,6 @@ Relocation<Reg_T> mips_lo() {
           -> HandleRelocationRes<Reg_T> { return {val & 0xFFF}; });
 }
 
-
 template <typename Reg_T>
 RelocationsVec<Reg_T> mipsRelocations() {
   RelocationsVec<Reg_T> relocations;

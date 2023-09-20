@@ -2,15 +2,14 @@
 
 #include <QPolygonF>
 
+#include "processors/MIPS/mms/mms.h"
+#include "processors/MIPS/mss/mss.h"
 #include "processors/RISC-V/rv5s/rv5s.h"
 #include "processors/RISC-V/rv5s_no_fw/rv5s_no_fw.h"
 #include "processors/RISC-V/rv5s_no_fw_hz/rv5s_no_fw_hz.h"
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
 #include "processors/RISC-V/rvss/rvss.h"
-#include "processors/MIPS/mss/mss.h"
-#include "processors/MIPS/mms/mms.h"
-
 
 namespace Ripes {
 
@@ -176,12 +175,11 @@ ProcessorRegistry::ProcessorRegistry() {
       "memory accessing instructions.",
       layouts, defRegVals));
 
-
   // MIPS single cycle
   layouts = {{"UCY-ECE212",
               ":/layouts/MIPS/mss/mips_ss_standard_layout.json",
               {{{0, 0}, QPointF{0.5, 0}}}},
-                {"Extended",
+             {"Extended",
               ":/layouts/MIPS/mss/mips_ss_extended_layout.json",
               {{{0, 0}, QPointF{0.5, 0}}}}};
   defRegVals = {{29, 0x7ffffff0}, {28, 0x10008000}};
@@ -193,14 +191,13 @@ ProcessorRegistry::ProcessorRegistry() {
   layouts = {{"UCY-ECE212",
               ":/layouts/MIPS/mms/mips_ms_standard_layout.json",
               {{{0, 0}, QPointF{0.25, 0}}}},
-                {"Extended",
+             {"Extended",
               ":/layouts/MIPS/mms/mips_ms_extended_layout.json",
               {{{0, 0}, QPointF{0.25, 0}}}}};
   defRegVals = {{29, 0x7ffffff0}, {28, 0x10008000}};
   addProcessor(ProcInfo<vsrtl::core::MMS<uint32_t>>(
       ProcessorID::MIPS32_MS, "Multi-cycle processor",
-      "A multi cycle processor, with finite state machine", layouts, defRegVals));
-
-
+      "A multi cycle processor, with finite state machine", layouts,
+      defRegVals));
 }
 } // namespace Ripes

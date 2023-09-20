@@ -20,7 +20,6 @@ public:
 
       const unsigned l7 = (instr.uValue() >> 26) & 0b111111;
 
-
       // clang-format off
             switch(l7) {
             case MIPSISA::Opcode::LUI: return MIPS_Instr::LUI;
@@ -262,7 +261,6 @@ public:
                      default: return 0;
                   }
         };
-
 
     // clang-format on
   }

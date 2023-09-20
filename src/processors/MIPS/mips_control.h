@@ -7,8 +7,6 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-
-
 class MIPS_Control : public Component {
 public:
   /* clang-format off */
@@ -269,7 +267,7 @@ public:
 public:
   MIPS_Control(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
-    do_reg_dst << [=] {return do_reg_dest_ctrl(opcode.uValue()); };
+    do_reg_dst << [=] { return do_reg_dest_ctrl(opcode.uValue()); };
     comp_ctrl << [=] { return do_comp_ctrl(opcode.uValue()); };
     do_branch << [=] { return do_branch_ctrl(opcode.uValue()); };
     do_bne_write << [=] { return do_bne_write_ctrl(opcode.uValue()); };
