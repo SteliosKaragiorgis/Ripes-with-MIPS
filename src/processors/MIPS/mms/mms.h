@@ -10,22 +10,19 @@
 
 #include "../../MIPS/mips.h"
 #include "../../MIPS/mips_alu.h"
-#include "../../MIPS/mips_control_mms.h"
 #include "../../MIPS/mips_alu_control.h"
+#include "../../MIPS/mips_control_mms.h"
+#include "../../MIPS/mips_decode_mms.h"
 #include "../../MIPS/mips_ecallchecker.h"
 #include "../../MIPS/mips_immediate.h"
+#include "../../MIPS/mips_jump_address.h"
 #include "../../MIPS/mips_memory_mms.h"
+#include "../../MIPS/mips_multi_fsm_start_state.h"
+#include "../../MIPS/mips_multi_fsm_state.h"
+#include "../../MIPS/mips_registerfile_mms.h"
 #include "../../MIPS/mips_shift.h"
 #include "../../MIPS/mips_shift_extend.h"
-#include "../../MIPS/mips_registerfile_mms.h"
-#include "../../MIPS/mips_jump_address.h"
 #include "../../MIPS/mms/mips_decodeMMS.h"
-#include "../../MIPS/mips_decode_mms.h"
-#include "../../MIPS/mips_multi_fsm_state.h"
-#include "../../MIPS/mips_multi_fsm_start_state.h"
-
-
-
 
 namespace vsrtl {
 namespace core {
@@ -39,17 +36,18 @@ class MMS : public RipesVSRTLProcessor {
 
 public:
   enum State {
-      InstructionFetch = 0,
-      InstructionDecode = 1,
-      MemoryAddressComputation = 2,
-      MemoryAccessLW = 3,
-      WriteBack = 4,
-      MemoryAccessSW = 5,
-      Execution = 6,
-      RTypeCompletion = 7,
-      BranchCompletion = 8,
-      JumpCompletion = 9,
-      STATECOUNT  };
+    InstructionFetch = 0,
+    InstructionDecode = 1,
+    MemoryAddressComputation = 2,
+    MemoryAccessLW = 3,
+    WriteBack = 4,
+    MemoryAccessSW = 5,
+    Execution = 6,
+    RTypeCompletion = 7,
+    BranchCompletion = 8,
+    JumpCompletion = 9,
+    STATECOUNT
+  };
   MMS(const QStringList &extensions)
       : RipesVSRTLProcessor("Multi Cycle MIPS Processor") {
     m_enabledISA = std::make_shared<ISAInfo<XLenToMIPSISA<XLEN>()>>(extensions);
@@ -62,14 +60,12 @@ public:
     pc_reg->out >> pc_4->op2;
     4 >> pc_4->op1;
 
-
     // Note: pc_src works uses the PcSrc enum, but is selected by the boolean
     // signal from the controlflow OR gate. PcSrc enum values must adhere to the
     // boolean 0/1 values.
 
     // -----------------------------------------------------------------------
     // Instruction memory
-
 
     // -----------------------------------------------------------------------
     // Decode
@@ -81,7 +77,6 @@ public:
     // Control signals
     decode->opcode >> control->opcode;
     decode->state >> control->state;
-
 
     // -----------------------------------------------------------------------
     // Immediate
@@ -115,18 +110,13 @@ public:
 
     decode->state >> registerFile->state;
 
-
     mem_data_reg->out >> reg_wr_src->get(MIPS_RegWrSrc::MEMREAD);
     alu_out->out >> reg_wr_src->get(MIPS_RegWrSrc::ALURES);
     control->reg_wr_src_ctrl >> reg_wr_src->select;
 
     data_mem->data_out >> decode->instr_s0;
 
-
     registerFile->setMemory(m_regMem);
-
-
-
 
     // -----------------------------------------------------------------------
     // Branch
@@ -140,8 +130,6 @@ public:
     bl_and->out >> *pc_write_or->in[3];
     bg_and->out >> *pc_write_or->in[4];
     pc_write_or->out >> pc_reg->enable;
-
-
 
     alu->greater >> *bg_and->in[1];
     control->do_bgt_write >> *bg_and->in[0];
@@ -180,7 +168,6 @@ public:
     shift_branch->out >> alu_op2_src_multi->get(MIPSMulti_AluSrc2::IMMSHIFT);
     alu_op2_src_multi->out >> alu->op2;
 
-
     control->alu_ctrl >> alu_control->ctrl;
     decode->instr_imm_5_0 >> alu_control->instr5_0;
     alu_control->res >> alu->ctrl;
@@ -198,19 +185,16 @@ public:
     j_address->res >> pc_src_multi->get(MIPSMulti_PcSrc::JADD);
     pc_src_multi->out >> pc_reg->in;
 
-
     j_address->res >> pc_src->get(MIPS_PcSrc::ALU);
     pc_branch->out >> pc_src->get(MIPS_PcSrc::PC4);
 
     // -----------------------------------------------------------------------
-    //Jump
-
+    // Jump
 
     pc_reg->out >> j_address->pc;
     shift_pc->out >> j_address->sl;
     decode->opcode >> j_address->opcode;
     registerFile->r1_out >> j_address->ra;
-
 
     // -----------------------------------------------------------------------
     // Shift
@@ -248,7 +232,7 @@ public:
     0 >> ecallChecker->stallEcallHandling;
 
     // -----------------------------------------------------------------------
-    //FSM
+    // FSM
     0 >> fsm_s0->start;
     fsm_s0->next_state >> fsm_s1->prev_state;
     fsm_s1->next_state >> fsm_s2->prev_state;
@@ -262,7 +246,6 @@ public:
     fsm_s3->next_state >> fsm_s4->prev_state;
     fsm_s6->next_state >> fsm_s7->prev_state;
     fsm_s10->next_state >> fsm_s11->prev_state;
-
 
     fsm_s4->next_state >> fsm_s0->s4;
     fsm_s5->next_state >> fsm_s0->s5;
@@ -280,14 +263,9 @@ public:
     fsm_s9->next_state >> fsm_show->s9;
     fsm_s11->next_state >> fsm_show->s11;
     fsm_s12->next_state >> fsm_show->s12;
-
-
-
-
-
   }
 
-  //FSM
+  // FSM
   SUBCOMPONENT(fsm_show, TYPE(MIPS_Multi_FSM_Start<XLEN>));
   SUBCOMPONENT(fsm_s0, TYPE(MIPS_Multi_FSM_Start<XLEN>));
   SUBCOMPONENT(fsm_s1, TYPE(MIPS_Multi_FSM<XLEN>));
@@ -302,7 +280,6 @@ public:
   SUBCOMPONENT(fsm_s10, TYPE(MIPS_Multi_FSM<XLEN>));
   SUBCOMPONENT(fsm_s11, TYPE(MIPS_Multi_FSM<XLEN>));
   SUBCOMPONENT(fsm_s12, TYPE(MIPS_Multi_FSM<XLEN>));
-
 
   // Design subcomponents
   SUBCOMPONENT(registerFile, TYPE(MIPS_RegisterFile_MMS<XLEN, false>));
@@ -329,12 +306,12 @@ public:
   SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<MIPS_PcSrc, XLEN>));
   SUBCOMPONENT(write_reg, TYPE(EnumMultiplexer<MIPS_WrReg, c_MIPSRegsBits>));
   SUBCOMPONENT(pc_branch, TYPE(EnumMultiplexer<MIPS_PcBranch, XLEN>));
-  SUBCOMPONENT(alu_op1_src_multi, TYPE(EnumMultiplexer<MIPSMulti_AluSrc1, XLEN>));
-  SUBCOMPONENT(alu_op2_src_multi, TYPE(EnumMultiplexer<MIPSMulti_AluSrc2, XLEN>));
+  SUBCOMPONENT(alu_op1_src_multi,
+               TYPE(EnumMultiplexer<MIPSMulti_AluSrc1, XLEN>));
+  SUBCOMPONENT(alu_op2_src_multi,
+               TYPE(EnumMultiplexer<MIPSMulti_AluSrc2, XLEN>));
   SUBCOMPONENT(pc_src_multi, TYPE(EnumMultiplexer<MIPSMulti_PcSrc, XLEN>));
   SUBCOMPONENT(address_multi, TYPE(EnumMultiplexer<MIPSMulti_Address, XLEN>));
-
-
 
   // Memories
   SUBCOMPONENT(data_mem, TYPE(MIPS_Memory_MMS<XLEN>));
@@ -366,626 +343,81 @@ public:
   }
   AInt nextFetchedAddress() const override { return pc_src->out.uValue(); }
   QString stageName(StageIndex idx) const override {
-  const VSRTL_VT_U &opcode = decode->opcode.uValue();
+    const VSRTL_VT_U &opcode = decode->opcode.uValue();
 
-      pc_reg->out.setActivePath(false);
-      address_multi->out.setActivePath(false);
-      data_mem->data_out.setActivePath(false);
-      mem_data_reg->out.setActivePath(false);
-      decode->decode->instr_imm_15_0.setActivePath(false);
-      decode->decode->instr_imm_5_0.setActivePath(false);
-      decode->decode->instr_rd_15_11.setActivePath(false);
-      decode->decode->instr_rt_20_16.setActivePath(false);
-      decode->decode->instr_rs_25_21.setActivePath(false);
-      decode->decode->opcode.setActivePath(false);
-      decode->decode->instr_address_25_0.setActivePath(false);
-      shift_pc->out.setActivePath(false);
-      j_address->res.setActivePath(false);
-      write_reg->out.setActivePath(false);
-      reg_wr_src->out.setActivePath(false);
-      registerFile->_rd1_mem->data_out.setActivePath(false);
-      registerFile->_rd2_mem->data_out.setActivePath(false);
-      a->out.setActivePath(false);
-      b->out.setActivePath(false);
-      alu_control->res.setActivePath(false);
-      immediate->imm.setActivePath(false);
-      shift_branch->out.setActivePath(false);
-      alu_op1_src_multi->out.setActivePath(false);
-      alu_op2_src_multi->out.setActivePath(false);
-      alu->res.setActivePath(false);
-      alu->less.setActivePath(false);
-      alu->greater.setActivePath(false);
-      alu_out->out.setActivePath(false);
-      pc_src_multi->out.setActivePath(false);
+    switch (decode->state.uValue()) {
 
-      //Control
-      control->mem_do_read_ctrl.setActivePath(false);
-      control->alu_op1_ctrl.setActivePath(false);
-      control->iord.setActivePath(false);
-      control->irwrite.setActivePath(false);
-      control->alu_op2_ctrl.setActivePath(false);
-      control->alu_ctrl.setActivePath(false);
-      control->pc_write.setActivePath(false);
-      control->pc_source.setActivePath(false);
-      control->reg_wr_src_ctrl.setActivePath(false);
-      control->reg_do_write_ctrl.setActivePath(false);
-      control->do_reg_dst.setActivePath(false);
-      control->do_bgt_write.setActivePath(false);
-      control->do_blt_write.setActivePath(false);
-      control->do_bne_write.setActivePath(false);
-      control->pc_write_cond.setActivePath(false);
+    // Instruction Fetch
+    case MIPSMulti_States::S0: {
 
+      return "State 0    ";
+    }
+    case MIPSMulti_States::S1: {
 
+      return "State 1    ";
+    }
+    case MIPSMulti_States::S2: {
 
-      //FSM
+      return "State 3    ";
+    }
+    case MIPSMulti_States::S4: {
 
-      fsm_s0->setCompActiveFsm(false);
-      fsm_s1->setCompActiveFsm(false);
-      fsm_s2->setCompActiveFsm(false);
-      fsm_s3->setCompActiveFsm(false);
-      fsm_s4->setCompActiveFsm(false);
-      fsm_s5->setCompActiveFsm(false);
-      fsm_s6->setCompActiveFsm(false);
-      fsm_s7->setCompActiveFsm(false);
-      fsm_s8->setCompActiveFsm(false);
-      fsm_s9->setCompActiveFsm(false);
-      fsm_s10->setCompActiveFsm(false);
-      fsm_s11->setCompActiveFsm(false);
-      fsm_s12->setCompActiveFsm(false);
-      fsm_show->setCompActiveFsm(false);
+      return "State 4    ";
+    }
+    case MIPSMulti_States::S5: {
 
-      fsm_s0->setCompActiveFsmCol(false);
-      fsm_s1->setCompActiveFsmCol(false);
-      fsm_s2->setCompActiveFsmCol(false);
-      fsm_s3->setCompActiveFsmCol(false);
-      fsm_s4->setCompActiveFsmCol(false);
-      fsm_s5->setCompActiveFsmCol(false);
-      fsm_s6->setCompActiveFsmCol(false);
-      fsm_s7->setCompActiveFsmCol(false);
-      fsm_s8->setCompActiveFsmCol(false);
-      fsm_s9->setCompActiveFsmCol(false);
-      fsm_s10->setCompActiveFsmCol(false);
-      fsm_s11->setCompActiveFsmCol(false);
-      fsm_s12->setCompActiveFsmCol(false);
-      fsm_show->setCompActiveFsmCol(false);
+      return "State 5    ";
+    }
+    case MIPSMulti_States::S6: {
 
-      fsm_s0->next_state.setActivePath(false);
-      fsm_s1->next_state.setActiveFsm(false);
-      fsm_s2->next_state.setActiveFsm(false);
-      fsm_s3->next_state.setActiveFsm(false);
-      fsm_s4->next_state.setActiveFsm(false);
-      fsm_s5->next_state.setActiveFsm(false);
-      fsm_s6->next_state.setActiveFsm(false);
-      fsm_s7->next_state.setActiveFsm(false);
-      fsm_s8->next_state.setActiveFsm(false);
-      fsm_s9->next_state.setActiveFsm(false);
-      fsm_s10->next_state.setActiveFsm(false);
-      fsm_s11->next_state.setActiveFsm(false);
-      fsm_s12->next_state.setActiveFsm(false);
+      return "State 6    ";
+    }
+    case MIPSMulti_States::S7: {
 
+      return "State 7    ";
+    }
+    case MIPSMulti_States::S8: {
 
-      fsm_s0->setCompActiveFsm(false);
-      fsm_s1->setCompActiveFsm(false);
+      return "State 8    ";
+    }
+    case MIPSMulti_States::S9: {
 
+      return "State 9    ";
+    }
+    case MIPSMulti_States::S10: {
 
-      // Design subcomponents
-      registerFile->setCompActivePath(false);
-      alu->setCompActivePath(false);
-      alu_branch->setCompActivePath(false);
-      control->setCompActivePath(true);
-      alu_control->setCompActiveFsm(false);
-      alu_control->setCompActivePath(false);
-      immediate->setCompActivePath(false);
-      decode->setCompActivePath(false);
-      pc_4->setCompActivePath(false);
+      return "State 10    ";
+    }
+    case MIPSMulti_States::S11: {
 
-      // Registers
-      pc_reg->setCompActivePath(false);
-      a->setCompActivePath(false);
-      b->setCompActivePath(false);
-      alu_out->setCompActivePath(false);
-      hi_out->setCompActivePath(false);
-      mem_data_reg->setCompActivePath(false);
-      instr_reg->setCompActivePath(false);
+      return "State 11    ";
+    }
+    case MIPSMulti_States::S12: {
 
-      // Multiplexers
-      reg_wr_src->setCompActivePath(false);
-      pc_src->setCompActivePath(false);
-      write_reg->setCompActivePath(false);
-      pc_branch->setCompActivePath(false);
-      alu_op1_src_multi->setCompActivePath(false);
-      alu_op2_src_multi->setCompActivePath(false);
-      pc_src_multi->setCompActivePath(false);
-      address_multi->setCompActivePath(false);
+      return "State 12    ";
+    }
 
-
-
-      // Memories
-      data_mem->setCompActivePath(false);
-
-      // Gates
-      br_and->setCompActiveFsm(true);
-      bn_and->setCompActiveFsm(true);
-      bg_and->setCompActiveFsm(true);
-      bl_and->setCompActiveFsm(true);
-      br_or->setCompActiveFsm(true);
-      bn_not->setCompActiveFsm(true);
-      pc_write_or->setCompActiveFsm(true);
-
-      // Shift
-      shift_pc->setCompActivePath(false);
-      shift_branch->setCompActivePath(false);
-
-
-      ecallChecker->setCompActivePath(false);
-      j_address->setCompActivePath(false);
-
-
-      switch(decode->state.uValue()){
-
-      //Instruction Fetch
-      case MIPSMulti_States::S0:{
-          fsm_s0->setCompActiveFsmCol(true);
-
-
-          pc_reg->setCompActivePath(true);
-          address_multi->setCompActivePath(true);
-          data_mem->setCompActivePath(true);
-          alu_op1_src_multi->setCompActivePath(true);
-          alu_op2_src_multi->setCompActivePath(true);
-          alu->setCompActivePath(true);
-          pc_src_multi->setCompActivePath(true);
-          mem_data_reg->setCompActivePath(true);
-          alu_control->setCompActiveFsm(true);
-
-          pc_reg->out.setActivePath(true);
-          address_multi->out.setActivePath(true);
-          data_mem->data_out.setActivePath(true);
-          alu_op1_src_multi->out.setActivePath(true);
-          alu_op2_src_multi->out.setActivePath(true);
-          alu->res.setActivePath(true);
-          pc_src_multi->out.setActivePath(true);
-          alu_control->res.setActivePath(true);
-
-
-
-          //Control
-          control->mem_do_read_ctrl.setActivePath(true);
-          control->alu_op1_ctrl.setActivePath(true);
-          control->iord.setActivePath(true);
-          control->irwrite.setActivePath(true);
-          control->alu_op2_ctrl.setActivePath(true);
-          control->alu_ctrl.setActivePath(true);
-          control->pc_write.setActivePath(true);
-          control->pc_source.setActivePath(true);
-
-
-          return "State 0    ";
-      }
-      case MIPSMulti_States::S1:{
-           fsm_s0->setCompActiveFsm(true);
-           fsm_s1->setCompActiveFsmCol(true);
-
-
-           immediate->setCompActivePath(true);
-           shift_branch->setCompActivePath(true);
-           alu_op1_src_multi->setCompActivePath(true);
-           alu_op2_src_multi->setCompActivePath(true);
-           alu->setCompActivePath(true);
-           decode->setCompActivePath(true);
-           mem_data_reg->setCompActivePath(true);
-           write_reg->setCompActivePath(true);
-           reg_wr_src->setCompActivePath(true);
-           registerFile->setCompActivePath(true);
-           a->setCompActivePath(true);
-           b->setCompActivePath(true);
-           alu_control->setCompActiveFsm(true);
-
-
-
-
-
-          mem_data_reg->out.setActivePath(true);
-          pc_reg->out.setActivePath(true);
-          decode->decode->instr_imm_15_0.setActivePath(true);
-          immediate->imm.setActivePath(true);
-          shift_branch->out.setActivePath(true);
-          decode->decode->instr_rt_20_16 .setActivePath(true);
-          decode->decode->instr_rs_25_21.setActivePath(true);
-          decode->decode->opcode.setActivePath(true);
-          registerFile->_rd1_mem->data_out.setActivePath(true);
-          registerFile->_rd2_mem->data_out.setActivePath(true);
-          alu_op1_src_multi->out.setActivePath(true);
-          alu_op2_src_multi->out.setActivePath(true);
-          alu->res.setActivePath(true);
-          alu_control->res.setActivePath(true);
-
-
-          //Control
-          control->alu_op1_ctrl.setActivePath(true);
-          control->alu_op2_ctrl.setActivePath(true);
-          control->alu_ctrl.setActivePath(true);
-
-
-
-          return "State 1    ";
-      }
-      case MIPSMulti_States::S2:{
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s2->setCompActiveFsmCol(true);
-
-
-          immediate->setCompActivePath(true);
-          a->setCompActivePath(true);
-          alu_op1_src_multi->setCompActivePath(true);
-          alu_op2_src_multi->setCompActivePath(true);
-          alu->setCompActivePath(true);
-          alu_control->setCompActiveFsm(true);
-
-
-          decode->decode->instr_imm_15_0.setActivePath(true);
-          immediate->imm.setActivePath(true);
-          a->out.setActivePath(true);
-          alu_op1_src_multi->out.setActivePath(true);
-          alu_op2_src_multi->out.setActivePath(true);
-          alu->res.setActivePath(true);
-          alu_control->res.setActivePath(true);
-
-
-          //Control
-          control->alu_op1_ctrl.setActivePath(true);
-          control->alu_op2_ctrl.setActivePath(true);
-          control->alu_ctrl.setActivePath(true);
-
-
-
-
-
-
-          return "State 2    ";
-      }
-      case MIPSMulti_States::S3:{
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s2->setCompActiveFsm(true);
-          fsm_s3->setCompActiveFsmCol(true);
-
-
-
-          address_multi->setCompActivePath(true);
-          data_mem->setCompActivePath(true);
-          alu_out->setCompActivePath(true);
-          data_mem->setCompActivePath(true);
-
-
-          address_multi->out.setActivePath(true);
-          data_mem->data_out.setActivePath(true);
-          alu_out->out.setActivePath(true);
-
-
-
-          //Control
-          control->mem_do_read_ctrl.setActivePath(true);
-          control->iord.setActivePath(true);
-
-
-
-
-
-          return "State 3    ";
-      }
-      case MIPSMulti_States::S4:{
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s2->setCompActiveFsm(true);
-          fsm_s3->setCompActiveFsm(true);
-          fsm_s4->setCompActiveFsmCol(true);
-
-
-          mem_data_reg->setCompActivePath(true);
-          decode->decode->setCompActivePath(true);
-          write_reg->setCompActivePath(true);
-          reg_wr_src->setCompActivePath(true);
-          decode->setCompActivePath(true);
-
-
-          mem_data_reg->out.setActivePath(true);
-          decode->decode->instr_rt_20_16.setActivePath(true);
-          write_reg->out.setActivePath(true);
-          reg_wr_src->out.setActivePath(true);
-
-          //Control
-          control->reg_wr_src_ctrl.setActivePath(true);
-          control->reg_do_write_ctrl.setActivePath(true);
-          control->do_reg_dst.setActivePath(true);
-
-
-          return "State 4    ";
-      }
-      case MIPSMulti_States::S5:{
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s2->setCompActiveFsm(true);
-          fsm_s5->setCompActiveFsmCol(true);
-
-
-
-          address_multi->setCompActivePath(true);
-          alu_out->setCompActivePath(true);
-          b->setCompActivePath(true);
-          data_mem->setCompActivePath(true);
-
-          address_multi->out.setActivePath(true);
-          alu_out->out.setActivePath(true);
-
-          //Control
-          control->mem_do_write_ctrl.setActivePath(true);
-          control->iord.setActivePath(true);
-
-
-          return "State 5    ";
-      }
-      case MIPSMulti_States::S6:{
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s6->setCompActiveFsmCol(true);
-
-
-
-          a->setCompActivePath(true);
-          b->setCompActivePath(true);
-          alu->setCompActivePath(true);
-          alu_control->setCompActiveFsm(true);
-          alu_op1_src_multi->setCompActivePath(true);
-          alu_op2_src_multi->setCompActivePath(true);
-
-
-          decode->decode->instr_imm_5_0.setActivePath(true);
-          alu_control->res.setActivePath(true);
-          a->out.setActivePath(true);
-          b->out.setActivePath(true);
-          alu_op1_src_multi->out.setActivePath(true);
-          alu_op2_src_multi->out.setActivePath(true);
-          alu->res.setActivePath(true);
-
-          //Control
-          control->alu_op1_ctrl.setActivePath(true);
-          control->alu_op2_ctrl.setActivePath(true);
-          control->alu_ctrl.setActivePath(true);
-
-
-          return "State 6    ";
-      }
-      case MIPSMulti_States::S7:{
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s6->setCompActiveFsm(true);
-          fsm_s7->setCompActiveFsmCol(true);
-
-
-          alu_out->setCompActivePath(true);
-          reg_wr_src->setCompActivePath(true);
-          registerFile->setCompActivePath(true);
-          decode->setCompActivePath(true);
-          write_reg->setCompActivePath(true);
-
-
-          decode->decode->instr_rd_15_11.setActivePath(true);
-          write_reg->out.setActivePath(true);
-          reg_wr_src->out.setActivePath(true);
-          alu_out->out.setActivePath(true);
-
-          //Control
-          control->reg_wr_src_ctrl.setActivePath(true);
-          control->reg_do_write_ctrl.setActivePath(true);
-          control->do_reg_dst.setActivePath(true);
-
-
-          return "State 7    ";
-      }
-      case MIPSMulti_States::S8:{
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s8->setCompActiveFsmCol(true);
-
-
-          a->setCompActivePath(true);
-          b->setCompActivePath(true);
-          alu_op1_src_multi->setCompActivePath(true);
-          alu_op2_src_multi->setCompActivePath(true);
-          alu->setCompActivePath(true);
-          alu_control->setCompActiveFsm(true);
-          alu_out->setCompActivePath(true);
-          pc_src_multi->setCompActivePath(true);
-          pc_reg->setCompActivePath(true);
-
-
-          a->out.setActivePath(true);
-          b->out.setActivePath(true);
-          alu_op1_src_multi->out.setActivePath(true);
-          alu_op2_src_multi->out.setActivePath(true);
-          alu->res.setActivePath(true);
-          alu->zero.setActivePath(true);
-          alu_out->out.setActivePath(true);
-          pc_src_multi->out.setActivePath(true);
-          alu_control->res.setActivePath(true);
-
-          //Control
-          control->alu_op1_ctrl.setActivePath(true);
-          control->alu_op2_ctrl.setActivePath(true);
-          control->alu_ctrl.setActivePath(true);
-          control->pc_source.setActivePath(true);
-          control->pc_write_cond.setActivePath(true);
-
-
-          switch(opcode){
-               case MIPS_Instr::BGEZ:{
-                    control->do_bgt_write.setActivePath(true);
-                    alu->greater.setActivePath(true);
-               }
-               case MIPS_Instr::BGTZ:{
-                    control->do_bgt_write.setActivePath(true);
-                    control->pc_write_cond.setActivePath(false);
-                    alu->greater.setActivePath(true);
-                    alu->zero.setActivePath(false);
-
-               }
-               case MIPS_Instr::BLEZ:{
-                    control->do_blt_write.setActivePath(true);
-                    alu->less.setActivePath(true);
-
-               }
-               case MIPS_Instr::BLTZ:{
-                    control->do_blt_write.setActivePath(true);
-                    control->pc_write_cond.setActivePath(false);
-                    alu->less.setActivePath(true);
-                    alu->zero.setActivePath(false);
-
-               }
-               case MIPS_Instr::BNE:{
-                    control->do_bne_write.setActivePath(true);
-                    control->pc_write_cond.setActivePath(false);
-               }
-          }
-
-
-          return "State 8    ";
-      }
-      case MIPSMulti_States::S9:{
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s9->setCompActiveFsmCol(true);
-
-          decode->setCompActivePath(true);
-          shift_pc->setCompActivePath(true);
-          j_address->setCompActivePath(true);
-          pc_src_multi->setCompActivePath(true);
-          pc_reg->setCompActivePath(true);
-
-          pc_reg->out.setActivePath(true);
-          decode->decode->instr_address_25_0.setActivePath(true);
-          shift_pc->out.setActivePath(true);
-          j_address->res.setActivePath(true);
-          pc_src_multi->out.setActivePath(true);
-
-          //Control
-          control->pc_write.setActivePath(true);
-          control->pc_source.setActivePath(true);
-
-
-
-          return "State 9    ";
-      }
-      case MIPSMulti_States::S10:{
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s10->setCompActiveFsmCol(true);
-
-          decode->setCompActivePath(true);
-          immediate->setCompActivePath(true);
-          a->setCompActivePath(true);
-          alu_op1_src_multi->setCompActivePath(true);
-          alu_op2_src_multi->setCompActivePath(true);
-          alu->setCompActivePath(true);
-          alu_out->setCompActivePath(true);
-
-
-          decode->decode->instr_imm_15_0.setActivePath(true);
-          decode->decode->instr_imm_5_0.setActivePath(true);
-          alu_control->res.setActivePath(true);
-          immediate->imm.setActivePath(true);
-          a->out.setActivePath(true);
-          alu_op1_src_multi->out.setActivePath(true);
-          alu_op2_src_multi->out.setActivePath(true);
-          alu->res.setActivePath(true);
-
-          //Control
-          control->alu_op1_ctrl.setActivePath(true);
-          control->alu_op2_ctrl.setActivePath(true);
-          control->alu_ctrl.setActivePath(true);
-
-
-          return "State 10    ";
-      }
-      case MIPSMulti_States::S11:{
-
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s10->setCompActiveFsm(true);
-          fsm_s11->setCompActiveFsmCol(true);
-
-
-          alu_out->setCompActivePath(true);
-          reg_wr_src->setCompActivePath(true);
-          registerFile->setCompActivePath(true);
-          decode->setCompActivePath(true);
-          write_reg->setCompActivePath(true);
-
-          decode->decode->instr_rt_20_16.setActivePath(true);
-          write_reg->out.setActivePath(true);
-          reg_wr_src->out.setActivePath(true);
-          alu_out->out.setActivePath(true);
-
-          //Control
-          control->reg_wr_src_ctrl.setActivePath(true);
-          control->reg_do_write_ctrl.setActivePath(true);
-          control->do_reg_dst.setActivePath(true);
-
-
-
-          return "State 11    ";
-      }
-      case MIPSMulti_States::S12:{
-
-          fsm_s0->setCompActiveFsm(true);
-          fsm_s1->setCompActiveFsm(true);
-          fsm_s12->setCompActiveFsmCol(true);
-
-          decode->setCompActivePath(true);
-          shift_pc->setCompActivePath(true);
-          j_address->setCompActivePath(true);
-          pc_src_multi->setCompActivePath(true);
-          pc_reg->setCompActivePath(true);
-
-
-          pc_reg->out.setActivePath(true);
-          decode->decode->instr_address_25_0.setActivePath(true);
-          shift_pc->out.setActivePath(true);
-          j_address->res.setActivePath(true);
-          pc_src_multi->out.setActivePath(true);
-
-          //Control
-          control->pc_write.setActivePath(true);
-          control->pc_source.setActivePath(true);
-          control->reg_wr_src_ctrl.setActivePath(true);
-          control->reg_do_write_ctrl.setActivePath(true);
-
-
-          return "State 12    ";
-      }
-
-
-
-      default: assert(false && "Processor does not contain state");
-      }
-        Q_UNREACHABLE();
+    default:
+      assert(false && "Processor does not contain state");
+    }
+    Q_UNREACHABLE();
     // clang-format on
   }
   StageInfo stageInfo(StageIndex) const override {
-      if(pc_write_or->out.uValue() == 1  && decode->state.uValue() !=  MIPSMulti_States::S8 &&
-             decode->state.uValue() !=  MIPSMulti_States::S9 && decode->state.uValue() !=  MIPSMulti_States::S1 &&
-              decode->state.uValue() !=  MIPSMulti_States::S12 && decode->state.uValue() !=  MIPSMulti_States::S7){
-          return StageInfo({pc_reg->out.uValue(),
-                            isExecutableAddress(pc_reg->out.uValue()),
-                            StageInfo::State::None});
-      }
-
-      return StageInfo({pc_reg->out.uValue()-4,
-                        isExecutableAddress(pc_reg->out.uValue()-4),
+    if (pc_write_or->out.uValue() == 1 &&
+        decode->state.uValue() != MIPSMulti_States::S8 &&
+        decode->state.uValue() != MIPSMulti_States::S9 &&
+        decode->state.uValue() != MIPSMulti_States::S1 &&
+        decode->state.uValue() != MIPSMulti_States::S12 &&
+        decode->state.uValue() != MIPSMulti_States::S7) {
+      return StageInfo({pc_reg->out.uValue(),
+                        isExecutableAddress(pc_reg->out.uValue()),
                         StageInfo::State::None});
+    }
 
-
+    return StageInfo({pc_reg->out.uValue() - 4,
+                      isExecutableAddress(pc_reg->out.uValue() - 4),
+                      StageInfo::State::None});
   }
   void setProgramCounter(AInt address) override {
     pc_reg->forceValue(0, address);
@@ -1048,7 +480,7 @@ public:
     m_finished = false;
   }
 
-  ///DONE
+  /// DONE
   void reset() override {
     ecallChecker->setSysCallExiting(false);
     Design::reset();
@@ -1057,8 +489,7 @@ public:
 
   static ProcessorISAInfo supportsISA() {
     return ProcessorISAInfo{
-        std::make_shared<ISAInfo<XLenToMIPSISA<XLEN>()>>(QStringList())
-    };
+        std::make_shared<ISAInfo<XLenToMIPSISA<XLEN>()>>(QStringList())};
   }
   const ISAInfoBase *implementsISA() const override {
     return m_enabledISA.get();
