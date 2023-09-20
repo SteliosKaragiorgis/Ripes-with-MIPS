@@ -14,8 +14,8 @@ public:
   MIPS_EcallChecker(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     dummy << [=] {
-      if (opcode.uValue() == MIPS_Instr::SYSCALL && !stallEcallHandling.uValue() &&
-          !handlingEcall) {
+      if (opcode.uValue() == MIPS_Instr::SYSCALL &&
+          !stallEcallHandling.uValue() && !handlingEcall) {
         assert(m_callback != nullptr && "No syscall callback was set!");
         handlingEcall = true;
         (*m_callback)();

@@ -19,8 +19,8 @@
 #include "io/iomanager.h"
 #include "processorhandler.h"
 #include "ripessettings.h"
-#include "symbolnavigator.h"
 #include "savedialog.h"
+#include "symbolnavigator.h"
 
 namespace Ripes {
 
@@ -113,7 +113,7 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
   enableEditor();
 
   // Initialize previous processor value
-  previousProcessor=ProcessorHandler::getProcessor()->implementsISA()->name();
+  previousProcessor = ProcessorHandler::getProcessor()->implementsISA()->name();
 
   // Make left-hand side widgets stretch wrt. registers
   m_ui->toplevelSplitter->setStretchFactor(0, 2);
@@ -150,45 +150,43 @@ EditTab::EditTab(QToolBar *toolbar, QWidget *parent)
   }
 
   auto updateEditorSourceText = [=] {
+    // Check if processor has changed (MIPS to RISCV/RISCV to MIPS)
+    if ((QString::compare(
+             ProcessorHandler::getProcessor()->implementsISA()->name(),
+             "MIPS32I") == 0 &&
+         previousProcessor != "MIPS32I") ||
+        (QString::compare(
+             ProcessorHandler::getProcessor()->implementsISA()->name(),
+             "MIPS32I") != 0 &&
+         previousProcessor == "MIPS32I")) {
 
-    //Check if processor has changed (MIPS to RISCV/RISCV to MIPS)
-    if((QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name() , "MIPS32I")==0
-            && previousProcessor != "MIPS32I")
-            || (QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name() , "MIPS32I")!=0
-                                                   && previousProcessor == "MIPS32I")){
+      auto *proc = ProcessorHandler::get();
+      if (proc->isRunning()) {
+        proc->stopRun();
+      }
+      if (!getAssemblyText().isEmpty()) {
+        QMessageBox saveMsgBox(this);
+        saveMsgBox.setWindowTitle("Ripes");
+        saveMsgBox.setText("Save current program before changing processor?");
 
-        auto *proc = ProcessorHandler::get();
-        if (proc->isRunning()){
-          proc->stopRun();
+        saveMsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+        const auto result = saveMsgBox.exec();
+        if (result == QMessageBox::Yes) {
+          saveFilesTriggered();
         }
-        if (!getAssemblyText().isEmpty()) {
-          QMessageBox saveMsgBox(this);
-          saveMsgBox.setWindowTitle("Ripes");
-          saveMsgBox.setText("Save current program before changing processor?");
-
-          saveMsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-
-          const auto result = saveMsgBox.exec();
-          if (result == QMessageBox::Yes) {
-            saveFilesTriggered();
-          }
-         }
-          setSourceText("");
-
-
-
+      }
+      setSourceText("");
     }
 
-
-    previousProcessor=ProcessorHandler::getProcessor()->implementsISA()->name();
+    previousProcessor =
+        ProcessorHandler::getProcessor()->implementsISA()->name();
   };
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
           updateEditorSourceText);
 
   m_ui->codeEditor->document()->setPlainText(
       RipesSettings::value(RIPES_SETTING_SOURCECODE).toString());
-
-
 }
 
 void EditTab::showSymbolNavigator() {
@@ -330,15 +328,16 @@ void EditTab::onProcessorChanged() {
   m_ui->codeEditor->setSourceType(
       m_currentSourceType, ProcessorHandler::getAssembler()->getOpcodes());
 
-  if(QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name(), "MIPS32I")==0){
-      m_ui->setCInput->setVisible(false);
-      m_toolbar->removeAction(m_buildAction);
+  if (QString::compare(
+          ProcessorHandler::getProcessor()->implementsISA()->name(),
+          "MIPS32I") == 0) {
+    m_ui->setCInput->setVisible(false);
+    m_toolbar->removeAction(m_buildAction);
   }
 
-  else{
-      m_ui->setCInput->setVisible(true);
-      m_toolbar->addAction(m_buildAction);
-
+  else {
+    m_ui->setCInput->setVisible(true);
+    m_toolbar->addAction(m_buildAction);
   }
 
   // Try reassembling
@@ -585,8 +584,7 @@ bool EditTab::loadElfFile(Program &program, QFile &file) {
 }
 
 void EditTab::saveFilesTriggered() {
-  SaveDialog diag(
-      getSourceType());
+  SaveDialog diag(getSourceType());
   if (!RipesSettings::value(RIPES_SETTING_HAS_SAVEFILE).toBool()) {
     saveFilesAsTriggered();
     return;
@@ -595,7 +593,8 @@ void EditTab::saveFilesTriggered() {
   emit prepareSave();
   QStringList savedFiles;
   if (!diag.sourcePath().isEmpty()) {
-    if (!QDir().mkpath(QFileInfo(diag.sourcePath()).absoluteDir().absolutePath()))
+    if (!QDir().mkpath(
+            QFileInfo(diag.sourcePath()).absoluteDir().absolutePath()))
       return;
     QFile file(diag.sourcePath());
     savedFiles << diag.sourcePath();
@@ -607,8 +606,9 @@ void EditTab::saveFilesTriggered() {
   }
 
   if (!diag.binaryPath().isEmpty()) {
-      if (!QDir().mkpath(QFileInfo(diag.binaryPath()).absoluteDir().absolutePath()))
-        return;
+    if (!QDir().mkpath(
+            QFileInfo(diag.binaryPath()).absoluteDir().absolutePath()))
+      return;
     QFile file(diag.binaryPath());
     auto program = ProcessorHandler::getProgram();
     if (!program || (program.get()->sections.count(".text") == 0))

@@ -7,7 +7,7 @@ namespace vsrtl {
 namespace core {
 using namespace Ripes;
 
-///RegDst
+/// RegDst
 
 class MIPS_Control_MMS : public Component {
 public:
@@ -334,7 +334,7 @@ public:
 public:
   MIPS_Control_MMS(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
-    do_reg_dst << [=] {return do_reg_dest_ctrl(state.uValue()); };
+    do_reg_dst << [=] { return do_reg_dest_ctrl(state.uValue()); };
     comp_ctrl << [=] { return do_comp_ctrl(opcode.uValue()); };
     do_branch << [=] { return do_branch_ctrl(opcode.uValue()); };
     do_bne_write << [=] { return do_bne_write_ctrl(opcode.uValue()); };
@@ -348,24 +348,24 @@ public:
     alu_op2_ctrl << [=] { return do_alu_op2_ctrl(state.uValue()); };
     alu_ctrl << [=] { return do_alu_ctrl(state.uValue(), opcode.uValue()); };
     mem_do_write_ctrl << [=] { return do_do_mem_write_ctrl(state.uValue()); };
-    mem_do_read_ctrl << [=] { return do_do_read_ctrl(state.uValue()); };               //MemRead
+    mem_do_read_ctrl <<
+        [=] { return do_do_read_ctrl(state.uValue()); }; // MemRead
     pc_source << [=] { return do_pc_source(state.uValue()); };
     iord << [=] { return do_iord(state.uValue()); };
     irwrite << [=] { return do_irwrite(state.uValue()); };
     pc_write << [=] { return do_pc_write(state.uValue(), opcode.uValue()); };
-    pc_write_cond << [=] { return do_pc_write_cond(state.uValue(), opcode.uValue()); };
+    pc_write_cond <<
+        [=] { return do_pc_write_cond(state.uValue(), opcode.uValue()); };
     instr_sel << [=] { return do_instr_sel(state.uValue()); };
-
-
   }
 
   INPUTPORT_ENUM(opcode, MIPS_Instr);
   INPUTPORT_ENUM(state, MIPSMulti_States);
-  //INPUTPORT(instr31_26, c_MIPSRegsBits);
+  // INPUTPORT(instr31_26, c_MIPSRegsBits);
   OUTPUTPORT(do_reg_dst, 1);
   OUTPUTPORT(reg_do_write_ctrl, 1);
   OUTPUTPORT(mem_do_write_ctrl, 1);
-  OUTPUTPORT(mem_do_read_ctrl, 1);                  //MemRead
+  OUTPUTPORT(mem_do_read_ctrl, 1); // MemRead
   OUTPUTPORT(do_branch, 1);
   OUTPUTPORT(do_jump, 1);
   OUTPUTPORT(do_bne_write, 1);

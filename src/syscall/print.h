@@ -95,7 +95,7 @@ public:
           ProcessorHandler::getMemory().readMemConst(address++, 1) & 0xFF);
       string.append(byte);
     } while (byte != '\0');
-    string.remove(1,string.length());
+    string.remove(1, string.length());
     SystemIO::printString(QString::fromUtf8(string));
   }
 };

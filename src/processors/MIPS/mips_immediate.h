@@ -19,14 +19,12 @@ public:
     imm << [=] {
       QString val = QString("%1").arg(instr15_0.uValue(), 16, 2, QChar('0'));
 
-      if(val[0] == '0')
-          return (signextend<32>(instr15_0.uValue()) & 0xffffffff);
-      else return (signextend<32>(instr15_0.uValue()) | 0xffff0000);
-
+      if (val[0] == '0')
+        return (signextend<32>(instr15_0.uValue()) & 0xffffffff);
+      else
+        return (signextend<32>(instr15_0.uValue()) | 0xffff0000);
     };
   }
-
-
 
   INPUTPORT(instr15_0, 16);
   OUTPUTPORT(imm, XLEN);

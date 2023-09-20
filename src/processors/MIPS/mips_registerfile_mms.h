@@ -2,8 +2,8 @@
 
 #include "VSRTL/core/vsrtl_constant.h"
 #include "VSRTL/core/vsrtl_memory.h"
-#include "VSRTL/core/vsrtl_wire.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
+#include "VSRTL/core/vsrtl_wire.h"
 
 #include "mips.h"
 #include "mips_reg_extended.h"
@@ -26,76 +26,68 @@ public:
 
     wr_en_0->out << [=] {
       int ret = wr_en.uValue() && wr_addr.uValue() != 0;
-      switch(opcode.uValue()){
-        case MIPS_Instr::MTHI:
-        case MIPS_Instr::MTLO:
-        case MIPS_Instr::MULT:
-        case MIPS_Instr::MULTU:
-        case MIPS_Instr::DIV:
-        case MIPS_Instr::DIVU:
-        case MIPS_Instr::JAL:
-        case MIPS_Instr::JALR:
-          switch(state.uValue()){
-            case MIPSMulti_States::S7: case MIPSMulti_States::S12:
-              return 1;
-            default: return ret;
-          }
+      switch (opcode.uValue()) {
+      case MIPS_Instr::MTHI:
+      case MIPS_Instr::MTLO:
+      case MIPS_Instr::MULT:
+      case MIPS_Instr::MULTU:
+      case MIPS_Instr::DIV:
+      case MIPS_Instr::DIVU:
+      case MIPS_Instr::JAL:
+      case MIPS_Instr::JALR:
+        switch (state.uValue()) {
+        case MIPSMulti_States::S7:
+        case MIPSMulti_States::S12:
+          return 1;
         default:
           return ret;
+        }
+      default:
+        return ret;
       }
     };
 
     wr2_en_0->out << [=] {
-      switch(opcode.uValue()){
-        case MIPS_Instr::MULT:
-        case MIPS_Instr::MULTU:
-        case MIPS_Instr::DIV:
-        case MIPS_Instr::DIVU:
-          switch(state.uValue()){
-            case MIPSMulti_States::S7:
-              return 1;
-            default: return 0;
-          }
+      switch (opcode.uValue()) {
+      case MIPS_Instr::MULT:
+      case MIPS_Instr::MULTU:
+      case MIPS_Instr::DIV:
+      case MIPS_Instr::DIVU:
+        switch (state.uValue()) {
+        case MIPSMulti_States::S7:
+          return 1;
         default:
           return 0;
+        }
+      default:
+        return 0;
       }
     };
 
-
     mt_sel >> _write_reg->select;
     reg_extend->wr_addr >> _write_reg->get(MIPS_Mt::IN1);
-    0b100000 >> _write_reg->get(MIPS_Mt::IN2);    //hi
-    0b100001 >> _write_reg->get(MIPS_Mt::IN3);    //lo
+    0b100000 >> _write_reg->get(MIPS_Mt::IN2); // hi
+    0b100001 >> _write_reg->get(MIPS_Mt::IN3); // lo
     _write_reg->out >> _wr_mem->addr;
-
 
     mult_div_sel >> _write2_reg->select;
     0b100001 >> _write2_reg->get(MIPS_Mult_Div::IN1);
-    0b100000 >> _write2_reg->get(MIPS_Mult_Div::IN2);    //mult, multu, div, divu
+    0b100000 >> _write2_reg->get(MIPS_Mult_Div::IN2); // mult, multu, div, divu
     _write2_reg->out >> _wr2_mem->addr;
 
     wr2_en_0->out >> _wr2_mem->wr_en;
     hi_in >> _wr2_mem->data_in;
     (XLEN / CHAR_BIT) >> _wr2_mem->wr_width;
 
-
-
     // rs_address (mt mux)
-     mf_sel >> _reg_addr->select;
-     reg_extend->r1_addr >> _reg_addr->get(MIPS_Mf::IN1);
-     0b100000 >> _reg_addr->get(MIPS_Mf::IN2);   //hi
-     0b100001 >> _reg_addr->get(MIPS_Mf::IN3);   //lo
-     _reg_addr->out >> _rd1_mem->addr;
+    mf_sel >> _reg_addr->select;
+    reg_extend->r1_addr >> _reg_addr->get(MIPS_Mf::IN1);
+    0b100000 >> _reg_addr->get(MIPS_Mf::IN2); // hi
+    0b100001 >> _reg_addr->get(MIPS_Mf::IN3); // lo
+    _reg_addr->out >> _rd1_mem->addr;
 
-
-
-     r1_addr >> reg_extend->reg1;
-     r2_addr >> reg_extend->reg2;
-
-
-
-
-
+    r1_addr >> reg_extend->reg1;
+    r2_addr >> reg_extend->reg2;
 
     wr_en_0->out >> _wr_mem->wr_en;
 
@@ -111,10 +103,7 @@ public:
     wr_addr >> _write_reg_internal->get(MIPS_WrRegInternal::IN3);
     _write_reg_internal->out >> reg_extend->wreg;
 
-
-
     (XLEN / CHAR_BIT) >> _wr_mem->wr_width;
-
 
     reg_extend->r2_addr >> _rd2_mem->addr;
 
@@ -161,23 +150,25 @@ public:
 
   SUBCOMPONENT(reg_extend, TYPE(MIPS_Reg_Extended<XLEN>));
 
-  SUBCOMPONENT(_reg_addr, TYPE(EnumMultiplexer<MIPS_Mf, c_MIPSRegsBits+1>));
+  SUBCOMPONENT(_reg_addr, TYPE(EnumMultiplexer<MIPS_Mf, c_MIPSRegsBits + 1>));
   SUBCOMPONENT(_write_data, TYPE(EnumMultiplexer<MIPS_WrData, XLEN>));
-  SUBCOMPONENT(_write_reg_internal, TYPE(EnumMultiplexer<MIPS_WrRegInternal, c_MIPSRegsBits>));
-  SUBCOMPONENT(_write_reg, TYPE(EnumMultiplexer<MIPS_Mt, c_MIPSRegsBits+1>));
-  SUBCOMPONENT(_write2_reg, TYPE(EnumMultiplexer<MIPS_Mult_Div, c_MIPSRegsBits+1>));
+  SUBCOMPONENT(_write_reg_internal,
+               TYPE(EnumMultiplexer<MIPS_WrRegInternal, c_MIPSRegsBits>));
+  SUBCOMPONENT(_write_reg, TYPE(EnumMultiplexer<MIPS_Mt, c_MIPSRegsBits + 1>));
+  SUBCOMPONENT(_write2_reg,
+               TYPE(EnumMultiplexer<MIPS_Mult_Div, c_MIPSRegsBits + 1>));
 
-  SUBCOMPONENT(_wr_mem, TYPE(WrMemory<c_MIPSRegsBits+1, XLEN, false>));
-  SUBCOMPONENT(_wr2_mem, TYPE(WrMemory<c_MIPSRegsBits+1, XLEN, false>));
-  SUBCOMPONENT(_rd1_mem, TYPE(RdMemory<c_MIPSRegsBits+1, XLEN, false>));
-  SUBCOMPONENT(_rd2_mem, TYPE(RdMemory<c_MIPSRegsBits+1, XLEN, false>));
+  SUBCOMPONENT(_wr_mem, TYPE(WrMemory<c_MIPSRegsBits + 1, XLEN, false>));
+  SUBCOMPONENT(_wr2_mem, TYPE(WrMemory<c_MIPSRegsBits + 1, XLEN, false>));
+  SUBCOMPONENT(_rd1_mem, TYPE(RdMemory<c_MIPSRegsBits + 1, XLEN, false>));
+  SUBCOMPONENT(_rd2_mem, TYPE(RdMemory<c_MIPSRegsBits + 1, XLEN, false>));
 
   INPUTPORT(r1_addr, c_MIPSRegsBits);
   INPUTPORT(r2_addr, c_MIPSRegsBits);
   INPUTPORT(wr_addr, c_MIPSRegsBits);
 
   INPUTPORT(pc_4, XLEN);
-  INPUTPORT(j_sel,2);
+  INPUTPORT(j_sel, 2);
   INPUTPORT(mf_sel, 2);
   INPUTPORT(mt_sel, 2);
   INPUTPORT(mult_div_sel, 1);

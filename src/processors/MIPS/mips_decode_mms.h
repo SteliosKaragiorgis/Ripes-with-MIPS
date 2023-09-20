@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include "VSRTL/core/vsrtl_component.h"
-#include "mips.h"
 #include "VSRTL/core/vsrtl_design.h"
+#include "mips.h"
 #include "mips_state_register.h"
 #include <bitset>
 
@@ -17,23 +17,13 @@ public:
   MIPSMulti_States m_state = MIPSMulti_States::S0;
   bool initialFlag = false;
 
-
-  void initialState(){
-      m_state = MIPSMulti_States::S0;
-
-  }
+  void initialState() { m_state = MIPSMulti_States::S0; }
 
   MIPS_Decode_MMS(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
 
-
-
-
     opcode << [=] {
-        auto instrValue = instr.uValue();
-
-
-
+      auto instrValue = instr.uValue();
 
       const unsigned l7 = (instrValue >> 26) & 0b111111;
 
@@ -339,11 +329,8 @@ public:
 
         };
 
-
     // clang-format on
   }
-
-
 
   INPUTPORT_ENUM(state_in, MIPSMulti_States);
   INPUTPORT(instr, c_MIPSInstrWidth);
@@ -371,7 +358,7 @@ public:
 private:
   void unknownInstruction() {}
   std::shared_ptr<ISAInfoBase> m_isa;
-  //VSRTL_VT_U m_state;
+  // VSRTL_VT_U m_state;
 };
 
 } // namespace core

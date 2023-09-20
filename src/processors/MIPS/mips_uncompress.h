@@ -15,7 +15,8 @@ public:
     m_disabled = !m_isa->extensionEnabled("C");
   }
 
-  MIPS_Uncompress(std::string name, SimComponent *parent) : Component(name, parent) {
+  MIPS_Uncompress(std::string name, SimComponent *parent)
+      : Component(name, parent) {
     setDescription("Uncompresses instructions from the 'C' extension into "
                    "their 32-bit representation.");
     Pc_Inc << [=] {
@@ -28,7 +29,6 @@ public:
     exp_instr << [=] {
       const auto instrValue = instr.uValue();
       VInt new_instr = instrValue;
-
 
       return new_instr;
     };
@@ -45,4 +45,3 @@ private:
 
 } // namespace core
 } // namespace vsrtl
-

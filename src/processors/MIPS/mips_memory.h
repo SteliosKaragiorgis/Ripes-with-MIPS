@@ -62,9 +62,9 @@ public:
     mem->setMemory(addressSpace);
   }
 
-  // MIPSInstrParser is also a BaseMemory... A bit redundant, but MIPSInstrParser has a notion
-  // of the memory operation that is happening, while the underlying
-  // MemoryAsyncRd does not.
+  // MIPSInstrParser is also a BaseMemory... A bit redundant, but
+  // MIPSInstrParser has a notion of the memory operation that is happening,
+  // while the underlying MemoryAsyncRd does not.
   VSRTL_VT_U addressSig() const override { return addr.uValue(); };
   VSRTL_VT_U wrEnSig() const override { return wr_en.uValue(); };
   VSRTL_VT_U opSig() const override { return op.uValue(); };

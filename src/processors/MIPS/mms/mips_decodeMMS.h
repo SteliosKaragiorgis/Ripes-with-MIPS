@@ -2,19 +2,17 @@
 
 #include "../mips.h"
 #include "../mips_decode_mms.h"
-#include "../mips_uncompress.h"
-#include "../mips_uncompress.h"
 #include "../mips_state_mms.h"
-#include "VSRTL/core/vsrtl_component.h"
 #include "../mips_state_register.h"
+#include "../mips_uncompress.h"
+#include "VSRTL/core/vsrtl_component.h"
 #include "VSRTL/core/vsrtl_logicgate.h"
 #include "VSRTL/core/vsrtl_multiplexer.h"
 
-#include "../mips_state_mms.h"
+#include "../mips_instr_reg_en_mms.h"
 #include "../mips_next_state_mms.h"
 #include "../mips_opcode_mms.h"
-#include "../mips_opcode_mms.h"
-#include "../mips_instr_reg_en_mms.h"
+#include "../mips_state_mms.h"
 
 namespace vsrtl {
 namespace core {
@@ -28,17 +26,16 @@ public:
     uncompress->setISA(isa);
   }
 
-  void initialState(){
-      decode->initialState();
-  }
+  void initialState() { decode->initialState(); }
 
-  MIPS_DecodeMMS(std::string name, SimComponent *parent) : Component(name, parent) {
-      const auto pcValue = pc.uValue() & 0b1;
+  MIPS_DecodeMMS(std::string name, SimComponent *parent)
+      : Component(name, parent) {
+    const auto pcValue = pc.uValue() & 0b1;
 
-      0 >> state_reg->clear;
-      pcValue >> state_reg->enable;
-      decode->next_state >> state_reg->state_reg_in;
-      state_reg->state_reg_out >> decode->state_in;
+    0 >> state_reg->clear;
+    pcValue >> state_reg->enable;
+    decode->next_state >> state_reg->state_reg_in;
+    state_reg->state_reg_out >> decode->state_in;
 
     instr_show >> uncompress->instr;
 
@@ -63,13 +60,11 @@ public:
 
     decode->wr_reg_idx >> wr_reg_idx;
 
-
     instr_show >> opcode_calc->instr;
     instr >> opcode_calc->instr_mem;
 
     opcode_calc->opcode_out >> next_state_calc->opcode;
     state_calc->state_out >> next_state_calc->state_in;
-
 
     next_state_calc->next_state >> state_calc_reg->state_reg_in;
     1 >> state_calc_reg->enable;
@@ -81,14 +76,12 @@ public:
 
     state_calc->state_out >> reg_en->state_in;
     reg_en->instr_reg_enable >> instr_reg_enable;
-
   }
   SUBCOMPONENT(opcode_calc, MIPS_Opcode_MMS);
-  SUBCOMPONENT(state_calc, TYPE(MIPS_State_MMS));                //state
-  SUBCOMPONENT(next_state_calc, TYPE(MIPS_Next_State_MMS));    //next state
-  SUBCOMPONENT(reg_en, TYPE(MIPS_Reg_En_MMS));              //instr register enable
+  SUBCOMPONENT(state_calc, TYPE(MIPS_State_MMS));           // state
+  SUBCOMPONENT(next_state_calc, TYPE(MIPS_Next_State_MMS)); // next state
+  SUBCOMPONENT(reg_en, TYPE(MIPS_Reg_En_MMS)); // instr register enable
   SUBCOMPONENT(state_calc_reg, TYPE(MIPS_STATE_REGISTER<XLEN>));
-
 
   SUBCOMPONENT(state_reg, TYPE(MIPS_STATE_REGISTER<XLEN>));
 
@@ -117,9 +110,8 @@ public:
   OUTPUTPORT(j_sel, 2);
   OUTPUTPORT(instr_reg_enable, 1);
 
-
-  OUTPUTPORT(Pc_Inc, 1);                                //MIPS_Uncompress
-  OUTPUTPORT(exp_instr, c_MIPSInstrWidth);              //MIPS_Uncompress
+  OUTPUTPORT(Pc_Inc, 1);                   // MIPS_Uncompress
+  OUTPUTPORT(exp_instr, c_MIPSInstrWidth); // MIPS_Uncompress
 };
 
 } // namespace core

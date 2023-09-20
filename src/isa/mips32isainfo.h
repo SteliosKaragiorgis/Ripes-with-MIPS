@@ -32,8 +32,6 @@ public:
   unsigned instrByteAlignment() const override {
     return extensionEnabled("C") ? 2 : 4;
   };
-
-
 };
 
 } // namespace Ripes

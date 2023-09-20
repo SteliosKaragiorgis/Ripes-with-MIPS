@@ -96,30 +96,36 @@ MainWindow::MainWindow(QWidget *parent)
   m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
   m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
 
-  if(QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name(), "MIPS32I")!=0){
-      m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
+  if (QString::compare(
+          ProcessorHandler::getProcessor()->implementsISA()->name(),
+          "MIPS32I") != 0) {
+    m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
   }
 
   auto tabbarVisibility = [=] {
-      if(QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name() , "MIPS32I")==0
-              && m_ui->tabbar->getActiveIndex()==4 ){
-          m_ui->tabbar->setActiveIndex(1);
-      }
+    if (QString::compare(
+            ProcessorHandler::getProcessor()->implementsISA()->name(),
+            "MIPS32I") == 0 &&
+        m_ui->tabbar->getActiveIndex() == 4) {
+      m_ui->tabbar->setActiveIndex(1);
+    }
 
-      m_ui->tabbar->removeFancyTab();
-      m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
-      m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
-      m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
-      m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
+    m_ui->tabbar->removeFancyTab();
+    m_ui->tabbar->addFancyTab(QIcon(":/icons/binary-code.svg"), "Editor");
+    m_ui->tabbar->addFancyTab(QIcon(":/icons/cpu.svg"), "Processor");
+    m_ui->tabbar->addFancyTab(QIcon(":/icons/server.svg"), "Cache");
+    m_ui->tabbar->addFancyTab(QIcon(":/icons/ram-memory.svg"), "Memory");
 
-      if(QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name() , "MIPS32I")!=0 ){
-          m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
-      }
+    if (QString::compare(
+            ProcessorHandler::getProcessor()->implementsISA()->name(),
+            "MIPS32I") != 0) {
+      m_ui->tabbar->addFancyTab(QIcon(":/icons/led.svg"), "I/O");
+    }
   };
 
   auto menuVisibility = [=] {
-      m_ui->menuFile->clear();
-      setupMenus();
+    m_ui->menuFile->clear();
+    setupMenus();
   };
 
   connect(ProcessorHandler::get(), &ProcessorHandler::processorChanged,
@@ -283,86 +289,85 @@ MainWindow::~MainWindow() { delete m_ui; }
 
 void MainWindow::setupExamplesMenu(QMenu *parent) {
 
-  if(QString::compare(ProcessorHandler::getProcessor()->implementsISA()->name() , "MIPS32I")==0 ){
-      parent->clear();
-      const auto assemblyExamples =
-          QDir(":/examples/assembly_mips/").entryList(QDir::Files);
-      auto *assemblyMenu = parent->addMenu("Assembly");
-      if (!assemblyExamples.isEmpty()) {
-        for (const auto &fileName : assemblyExamples) {
-          assemblyMenu->addAction(fileName, this, [=] {
-            LoadFileParams parms;
-            parms.filepath = QString(":/examples/assembly_mips/") + fileName;
-            parms.type = SourceType::Assembly;
-            static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
-                ->loadExternalFile(parms);
-            clearSaveFile();
-          });
-        }
+  if (QString::compare(
+          ProcessorHandler::getProcessor()->implementsISA()->name(),
+          "MIPS32I") == 0) {
+    parent->clear();
+    const auto assemblyExamples =
+        QDir(":/examples/assembly_mips/").entryList(QDir::Files);
+    auto *assemblyMenu = parent->addMenu("Assembly");
+    if (!assemblyExamples.isEmpty()) {
+      for (const auto &fileName : assemblyExamples) {
+        assemblyMenu->addAction(fileName, this, [=] {
+          LoadFileParams parms;
+          parms.filepath = QString(":/examples/assembly_mips/") + fileName;
+          parms.type = SourceType::Assembly;
+          static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
+              ->loadExternalFile(parms);
+          clearSaveFile();
+        });
       }
+    }
 
-  }
-  else{
+  } else {
     parent->clear();
 
-
-  const auto assemblyExamples =
-      QDir(":/examples/assembly/").entryList(QDir::Files);
-  auto *assemblyMenu = parent->addMenu("Assembly");
-  if (!assemblyExamples.isEmpty()) {
-    for (const auto &fileName : assemblyExamples) {
-      assemblyMenu->addAction(fileName, this, [=] {
-        LoadFileParams parms;
-        parms.filepath = QString(":/examples/assembly/") + fileName;
-        parms.type = SourceType::Assembly;
-        static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
-            ->loadExternalFile(parms);
-        clearSaveFile();
-      });
+    const auto assemblyExamples =
+        QDir(":/examples/assembly/").entryList(QDir::Files);
+    auto *assemblyMenu = parent->addMenu("Assembly");
+    if (!assemblyExamples.isEmpty()) {
+      for (const auto &fileName : assemblyExamples) {
+        assemblyMenu->addAction(fileName, this, [=] {
+          LoadFileParams parms;
+          parms.filepath = QString(":/examples/assembly/") + fileName;
+          parms.type = SourceType::Assembly;
+          static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
+              ->loadExternalFile(parms);
+          clearSaveFile();
+        });
+      }
     }
-  }
 
-  const auto cExamples = QDir(":/examples/C/").entryList(QDir::Files);
-  auto *cMenu = parent->addMenu("C");
-  if (!cExamples.isEmpty()) {
-    for (const auto &fileName : cExamples) {
-      cMenu->addAction(fileName, this, [=] {
-        LoadFileParams parms;
-        parms.filepath = QString(":/examples/C/") + fileName;
-        parms.type = SourceType::C;
-        static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
-            ->loadExternalFile(parms);
-        clearSaveFile();
-      });
+    const auto cExamples = QDir(":/examples/C/").entryList(QDir::Files);
+    auto *cMenu = parent->addMenu("C");
+    if (!cExamples.isEmpty()) {
+      for (const auto &fileName : cExamples) {
+        cMenu->addAction(fileName, this, [=] {
+          LoadFileParams parms;
+          parms.filepath = QString(":/examples/C/") + fileName;
+          parms.type = SourceType::C;
+          static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
+              ->loadExternalFile(parms);
+          clearSaveFile();
+        });
+      }
     }
-  }
 
-  const auto ELFExamples = QDir(":/examples/ELF/").entryList(QDir::Files);
-  auto *elfMenu = parent->addMenu("ELF (precompiled C)");
-  if (!ELFExamples.isEmpty()) {
-    for (const auto &fileName : ELFExamples) {
-      elfMenu->addAction(fileName, this, [=] {
-        // ELFIO Cannot read directly from the bundled resource file, so copy
-        // the ELF file to a temporary file before loading the program.
-        QTemporaryFile *tmpELFFile =
-            QTemporaryFile::createNativeFile(":/examples/ELF/" + fileName);
-        if (!tmpELFFile->open()) {
-          QMessageBox::warning(this, "Error",
-                               "Could not create temporary ELF file");
-          return;
-        }
+    const auto ELFExamples = QDir(":/examples/ELF/").entryList(QDir::Files);
+    auto *elfMenu = parent->addMenu("ELF (precompiled C)");
+    if (!ELFExamples.isEmpty()) {
+      for (const auto &fileName : ELFExamples) {
+        elfMenu->addAction(fileName, this, [=] {
+          // ELFIO Cannot read directly from the bundled resource file, so copy
+          // the ELF file to a temporary file before loading the program.
+          QTemporaryFile *tmpELFFile =
+              QTemporaryFile::createNativeFile(":/examples/ELF/" + fileName);
+          if (!tmpELFFile->open()) {
+            QMessageBox::warning(this, "Error",
+                                 "Could not create temporary ELF file");
+            return;
+          }
 
-        LoadFileParams parms;
-        parms.filepath = tmpELFFile->fileName();
-        parms.type = SourceType::ExternalELF;
-        static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
-            ->loadExternalFile(parms);
-        clearSaveFile();
-        tmpELFFile->remove();
-      });
+          LoadFileParams parms;
+          parms.filepath = tmpELFFile->fileName();
+          parms.type = SourceType::ExternalELF;
+          static_cast<EditTab *>(m_tabWidgets.at(EditTabID).tab)
+              ->loadExternalFile(parms);
+          clearSaveFile();
+          tmpELFFile->remove();
+        });
+      }
     }
-  }
-
   }
 }
 

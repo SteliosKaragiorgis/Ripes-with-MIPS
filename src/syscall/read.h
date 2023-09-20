@@ -8,15 +8,13 @@
 
 namespace Ripes {
 
-
 template <typename BaseSyscall>
 class ReadIntSyscall : public BaseSyscall {
   static_assert(std::is_base_of<Syscall, BaseSyscall>::value);
 
 public:
   ReadIntSyscall()
-      : BaseSyscall("ReadInt", "Read integer",
-                    {{0, "integer to print"}},
+      : BaseSyscall("ReadInt", "Read integer", {{0, "integer to print"}},
                     {{0, "contains integer read"}}) {}
   void execute() {
     const int fd = 0;
@@ -27,8 +25,6 @@ public:
 
     bool ok;
     BaseSyscall::setRet(RegisterFileType::GPR, 0, buffer.toInt(&ok, 10));
-
-
   }
 };
 
@@ -63,6 +59,5 @@ public:
     }
   }
 };
-
 
 } // namespace Ripes

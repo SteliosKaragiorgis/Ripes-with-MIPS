@@ -16,16 +16,16 @@ namespace Ripes {
 class MIPSSyscall : public Syscall {
 public:
   MIPSSyscall(const QString &name, const QString &description = QString(),
-               const std::map<ArgIdx, QString> &argumentDescriptions =
-                   std::map<ArgIdx, QString>(),
-               const std::map<ArgIdx, QString> &returnDescriptions =
-                   std::map<ArgIdx, QString>())
+              const std::map<ArgIdx, QString> &argumentDescriptions =
+                  std::map<ArgIdx, QString>(),
+              const std::map<ArgIdx, QString> &returnDescriptions =
+                  std::map<ArgIdx, QString>())
       : Syscall(name, description, argumentDescriptions, returnDescriptions) {}
   ~MIPSSyscall() override {}
 
   VInt getArg(RegisterFileType rfid, ArgIdx i) const override {
     assert(i < 7);
-    const int regIdx = 4 + i;  // a0 = x4
+    const int regIdx = 4 + i; // a0 = x4
     return ProcessorHandler::getRegisterValue(rfid, regIdx);
   }
 
@@ -56,9 +56,7 @@ public:
     emplace<ReadIntSyscall<MIPSSyscall>>(MIPSABI::ReadInt);
     emplace<ReadStringSyscall<MIPSSyscall>>(MIPSABI::ReadString);
 
-
     // Time syscalls
-
   }
 };
 

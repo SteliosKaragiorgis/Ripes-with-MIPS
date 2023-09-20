@@ -15,22 +15,19 @@ public:
       : Component(name, parent) {
 
     opcode_out << [=] {
-        auto instrValue = instr_mem.uValue();
-        switch(state.uValue()){
-          case MIPSMulti_States::S0:
-            instrValue = instr_mem.uValue();
-            break;
-          default:
-            instrValue = instr.uValue();
-            break;
+      auto instrValue = instr_mem.uValue();
+      switch (state.uValue()) {
+      case MIPSMulti_States::S0:
+        instrValue = instr_mem.uValue();
+        break;
+      default:
+        instrValue = instr.uValue();
+        break;
+      }
 
-        }
+      const unsigned l7 = (instrValue >> 26) & 0b111111;
 
-
-        const unsigned l7 = (instrValue >> 26) & 0b111111;
-
-
-        // clang-format off
+      // clang-format off
           switch(l7) {
               case MIPSISA::Opcode::LUI: return MIPS_Instr::LUI;
               case MIPSISA::Opcode::JAL: return MIPS_Instr::JAL;

@@ -45,7 +45,7 @@ qint32 FancyTabBar::addFancyTab(QIcon icon, QString text) {
   return tabVector.size() - 1;
 }
 
-void FancyTabBar::removeFancyTab(){
+void FancyTabBar::removeFancyTab() {
   for (int i = 0; i < tabVector.size(); i++) {
     delete tabVector.at(i);
   }
