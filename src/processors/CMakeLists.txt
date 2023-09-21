@@ -58,3 +58,8 @@ create_vsrtl_processor(RISC-V rv5s_no_fw_hz)
 create_vsrtl_processor(RISC-V rv5s_no_hz)
 create_vsrtl_processor(RISC-V rv5s_no_fw)
 create_vsrtl_processor(RISC-V rv6s_dual)
+
+# MIPS Processors
+create_isa_lib(MIPS)
+create_vsrtl_processor(MIPS mss)            # Single cycle
+create_vsrtl_processor(MIPS mms)            # Multi cycle

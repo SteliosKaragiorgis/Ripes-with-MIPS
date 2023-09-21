@@ -141,11 +141,20 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem *current,
   m_selectedID = id;
   m_ui->name->setText(desc->name);
   m_ui->ISA->setText(isaInfo.isa->name());
-  m_ui->description->clear();
-  m_ui->description->appendHtml(desc->description);
-  m_ui->description->moveCursor(QTextCursor::Start);
-  m_ui->description->ensureCursorVisible();
+  m_ui->description->setPlainText(desc->description);
   m_ui->regInitWidget->processorSelectionChanged(id);
+
+  if (QString::compare(isaInfo.isa->name(), "MIPS32I") == 0) {
+    m_ui->label_4->setVisible(true);
+    m_ui->label_5->setVisible(false);
+    m_ui->layout->setVisible(true);
+    m_ui->extensions->setEnabled(false);
+  } else {
+    m_ui->label_4->setVisible(true);
+    m_ui->label_5->setVisible(true);
+    m_ui->layout->setVisible(true);
+    m_ui->extensions->setEnabled(true);
+  }
 
   m_ui->layout->clear();
   for (const auto &layout : desc->layouts) {
@@ -159,21 +168,22 @@ void ProcessorSelectionDialog::selectionChanged(QTreeWidgetItem *current,
     delete item->widget();
     delete item;
   }
-
-  for (const auto &ext : qAsConst(isaInfo.supportedExtensions)) {
-    auto chkbox = new QCheckBox(ext);
-    chkbox->setToolTip(isaInfo.isa->extensionDescription(ext));
-    m_ui->extensions->addWidget(chkbox);
-    if (m_selectedExtensionsForID[desc->id].contains(ext)) {
-      chkbox->setChecked(true);
-    }
-    connect(chkbox, &QCheckBox::toggled, this, [=](bool toggled) {
-      if (toggled) {
-        m_selectedExtensionsForID[id] << ext;
-      } else {
-        m_selectedExtensionsForID[id].removeAll(ext);
+  if (QString::compare(isaInfo.isa->name(), "MIPS32I")) {
+    for (const auto &ext : qAsConst(isaInfo.supportedExtensions)) {
+      auto chkbox = new QCheckBox(ext);
+      chkbox->setToolTip(isaInfo.isa->extensionDescription(ext));
+      m_ui->extensions->addWidget(chkbox);
+      if (m_selectedExtensionsForID[desc->id].contains(ext)) {
+        chkbox->setChecked(true);
       }
-    });
+      connect(chkbox, &QCheckBox::toggled, this, [=](bool toggled) {
+        if (toggled) {
+          m_selectedExtensionsForID[id] << ext;
+        } else {
+          m_selectedExtensionsForID[id].removeAll(ext);
+        }
+      });
+    }
   }
 }
 
