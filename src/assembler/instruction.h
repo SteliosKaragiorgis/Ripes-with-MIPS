@@ -89,7 +89,7 @@ struct Field {
                                       const ReverseSymbolMap &symbolMap,
                                       LineTokens &line) const = 0;
 
-  /// Return the set of bitranges which constitutes this field.
+  /// Return the set of bitranges which consitutes this field.
   virtual std::vector<BitRange> bitRanges() const = 0;
   const unsigned tokenIndex;
 };
@@ -217,17 +217,8 @@ struct Imm : public Field<Reg_T> {
   using Reg_T_S = typename std::make_signed<Reg_T>::type;
   using Reg_T_U = typename std::make_unsigned<Reg_T>::type;
 
-  enum class Repr { Unsigned, Signed, Hex };
-  static Radix reprToRadix(Repr repr) {
-    if (repr == Repr::Unsigned)
-      return Radix::Unsigned;
-    if (repr == Repr::Signed)
-      return Radix::Signed;
-    if (repr == Repr::Hex)
-      return Radix::Hex;
-    return Radix::Unsigned;
-  }
-  enum class SymbolType { None, Relative, Absolute };
+  enum class Repr { Unsigned, UnsignedMips, Signed, SignedMips, Hex };
+  enum class SymbolType { None, Relative, Absolute, MipsBranch };
   /**
    * @brief Imm
    * @param _tokenIndex: Index within a list of decoded instruction tokens that
@@ -248,11 +239,9 @@ struct Imm : public Field<Reg_T> {
       : Field<Reg_T>(_tokenIndex), parts(_parts), width(_width), repr(_repr),
         symbolType(_symbolType), symbolTransformer(_symbolTransformer) {}
 
-  int64_t getImm(const QString &immToken, bool &success,
-                 ImmConvInfo &convInfo) const {
-    return repr == Repr::Signed
-               ? getImmediateSext32(immToken, success, &convInfo)
-               : getImmediate(immToken, success, &convInfo);
+  int64_t getImm(const QString &immToken, bool &success) const {
+    return repr == Repr::Signed ? getImmediateSext32(immToken, success)
+                                : getImmediate(immToken, success);
   }
 
   std::optional<Error>
@@ -260,8 +249,7 @@ struct Imm : public Field<Reg_T> {
         FieldLinkRequest<Reg_T> &linksWithSymbol) const override {
     bool success;
     const Token &immToken = line.tokens[this->tokenIndex];
-    ImmConvInfo convInfo;
-    Reg_T_S value = getImm(immToken, success, convInfo);
+    Reg_T_S value = getImm(immToken, success);
 
     if (!success) {
       // Could not directly resolve immediate. Register it as a symbol to link
@@ -272,8 +260,7 @@ struct Imm : public Field<Reg_T> {
       return {};
     }
 
-    if (auto res = checkFitsInWidth(value, line, convInfo, immToken);
-        res.isError())
+    if (auto res = checkFitsInWidth(value, line); res.isError())
       return res.error();
 
     for (const auto &part : parts) {
@@ -282,53 +269,21 @@ struct Imm : public Field<Reg_T> {
     return std::nullopt;
   }
 
-  Result<> checkFitsInWidth(Reg_T_S value, const Location &sourceLine,
-                            ImmConvInfo &convInfo,
-                            QString token = QString()) const {
-    bool err = false;
-    if (repr != Repr::Signed) {
-      if (!isUInt(width, value)) {
-        err = true;
-        if (token.isEmpty())
-          token = QString::number(static_cast<Reg_T_U>(value));
-      }
-    } else {
-
-      // In case of a bitwize (binary or hex) radix, interpret the value as
-      // legal if it fits in the width of this immediate (equal to an unsigned
-      // immediate check). e.g. a signed immediate value of 12 bits must be able
-      // to accept 0xAFF.
-      bool isBitwize =
-          convInfo.radix == Radix::Hex || convInfo.radix == Radix::Binary;
-      if (isBitwize) {
-        err = !isUInt(width, value);
-      }
-
-      if (!isBitwize || (isBitwize && err)) {
-        // A signed representation using an integer value in assembly OR a
-        // negative bitwize value which is represented in its full length (e.g.
-        // 0xFFFFFFF1).
-        err = !isInt(width, value);
-      }
-
-      if (err)
-        if (token.isEmpty())
-          token = QString::number(static_cast<Reg_T_S>(value));
-    }
-
-    if (err) {
-      return Error(sourceLine, "Immediate value '" + token +
-                                   "' does not fit in " +
+  Result<> checkFitsInWidth(Reg_T_S value, const Location &sourceLine) const {
+    if (!((repr == Repr::Signed || repr == Repr::SignedMips)
+              ? isInt(width, value)
+              : (isUInt(width, value)))) {
+      const QString v = repr == Repr::Signed || repr == Repr::SignedMips
+                            ? QString::number(static_cast<Reg_T_S>(value))
+                            : QString::number(static_cast<Reg_T_U>(value));
+      return Error(sourceLine, "Immediate value '" + v + "' does not fit in " +
                                    QString::number(width) + " bits");
     }
-
     return Result<>::def();
   }
 
   Result<> applySymbolResolution(const Location &loc, Reg_T symbolValue,
                                  Instr_T &instruction, Reg_T address) const {
-    ImmConvInfo convInfo;
-    convInfo.radix = reprToRadix(repr);
     Reg_T adjustedValue = symbolValue;
     if (symbolType == SymbolType::Relative)
       adjustedValue -= address;
@@ -336,9 +291,14 @@ struct Imm : public Field<Reg_T> {
     if (symbolTransformer)
       adjustedValue = symbolTransformer(adjustedValue);
 
-    if (auto res = checkFitsInWidth(adjustedValue, loc, convInfo);
-        res.isError())
+    if (auto res = checkFitsInWidth(adjustedValue, loc); res.isError())
       return res.error();
+
+    if (repr == Repr::SignedMips)
+      adjustedValue = (adjustedValue - 1) / 4;
+
+    if (repr == Repr::UnsignedMips)
+      adjustedValue = adjustedValue / 4;
 
     for (const auto &part : parts)
       part.apply(adjustedValue, instruction);
@@ -353,17 +313,20 @@ struct Imm : public Field<Reg_T> {
     for (const auto &part : parts) {
       part.decode(reconstructed, instruction);
     }
-    if (repr == Repr::Signed) {
+    if (repr == Repr::Signed || repr == Repr::SignedMips) {
       line.push_back(QString::number(vsrtl::signextend(reconstructed, width)));
-    } else if (repr == Repr::Unsigned) {
+    } else if (repr == Repr::Unsigned || repr == Repr::UnsignedMips) {
       line.push_back(QString::number(reconstructed));
     } else {
       line.push_back("0x" + QString::number(reconstructed, 16));
     }
 
     if (symbolType != SymbolType::None) {
-      const int value = vsrtl::signextend(reconstructed, width);
-      const Reg_T symbolAddress =
+      int value =
+          (vsrtl::signextend(reconstructed, width) +
+           (repr == Repr::SignedMips ? 1 : 0)) *
+          ((repr == Repr::SignedMips || repr == Repr::UnsignedMips) ? 4 : 1);
+      Reg_T symbolAddress =
           value + (symbolType == SymbolType::Absolute ? 0 : address);
       if (symbolMap.count(symbolAddress)) {
         line.push_back("<" + symbolMap.at(symbolAddress).v + ">");
